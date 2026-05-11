@@ -8,7 +8,7 @@ import {
   useBounds,
   Stars,
 } from '@react-three/drei';
-import { Suspense, useEffect } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useScopeStore } from '@/lib/store/useScopeStore';
 import { LayerBlock } from './LayerBlock';
 import { SignalPacket } from './SignalPacket';
@@ -78,6 +78,18 @@ function Lighting() {
 
 export function Scene() {
   const hasGraph = useScopeStore((s) => Boolean(s.graph));
+  const [userInteracted, setUserInteracted] = useState(false);
+
+  useEffect(() => {
+    if (userInteracted) return;
+    const stop = () => setUserInteracted(true);
+    window.addEventListener('pointerdown', stop, { once: true, passive: true });
+    window.addEventListener('wheel', stop, { once: true, passive: true });
+    return () => {
+      window.removeEventListener('pointerdown', stop);
+      window.removeEventListener('wheel', stop);
+    };
+  }, [userInteracted]);
 
   return (
     <Canvas
@@ -135,7 +147,7 @@ export function Scene() {
         dampingFactor={0.08}
         minDistance={2}
         maxDistance={200}
-        autoRotate={!hasGraph}
+        autoRotate={!hasGraph && !userInteracted}
         autoRotateSpeed={0.45}
       />
     </Canvas>

@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useState } from 'react';
 import { useScopeStore } from '@/lib/store/useScopeStore';
 import { ModelLoader } from '@/components/panels/ModelLoader';
 import { ExampleModels } from '@/components/panels/ExampleModels';
@@ -43,10 +44,27 @@ export default function Home() {
   const selectedWeights = selectedLayerId
     ? weightsByGroup[selectedLayerId]
     : undefined;
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
-    <div className="flex flex-1 h-screen w-screen bg-black text-zinc-100">
-      <aside className="w-80 border-r border-zinc-800 p-4 flex flex-col gap-4 overflow-y-auto">
+    <div className="flex flex-1 flex-col md:flex-row h-screen w-screen bg-black text-zinc-100">
+      <button
+        type="button"
+        onClick={() => setSidebarOpen((o) => !o)}
+        aria-label={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
+        aria-expanded={sidebarOpen}
+        className="md:hidden flex items-center justify-between border-b border-zinc-800 px-4 py-2 text-xs text-zinc-300"
+      >
+        <span className="font-semibold">NeuralScope</span>
+        <span className="font-mono text-zinc-500">
+          {sidebarOpen ? 'hide ▴' : 'show ▾'}
+        </span>
+      </button>
+      <aside
+        className={`${
+          sidebarOpen ? 'flex' : 'hidden'
+        } md:flex w-full md:w-80 max-h-[60vh] md:max-h-none border-b md:border-b-0 md:border-r border-zinc-800 p-4 flex-col gap-4 overflow-y-auto`}
+      >
         <header>
           <h1 className="text-lg font-semibold tracking-tight">NeuralScope</h1>
           <p className="text-[11px] text-zinc-500 leading-relaxed mt-1">

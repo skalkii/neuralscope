@@ -62,23 +62,29 @@ export function NeuronGrid({
       const y = (row - (rows - 1) / 2) * spacing;
       tmpObj.position.set(x, y, 0);
       tmpObj.rotation.set(0, 0, 0);
-      const scale = i === selectedNeuronIndex ? cellSize * 1.6 : cellSize;
-      tmpObj.scale.setScalar(scale);
+      tmpObj.scale.setScalar(cellSize);
       tmpObj.updateMatrix();
       mesh.setMatrixAt(i, tmpObj.matrix);
       const v = summary.values[i] / localMax;
       const [r, g, b] = magma(v);
-      if (i === selectedNeuronIndex) {
-        tmpColor.setRGB(1, 1, 1);
-      } else {
-        tmpColor.setRGB(r, g, b);
-      }
+      tmpColor.setRGB(r, g, b);
       mesh.setColorAt(i, tmpColor);
     }
     mesh.count = count;
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-  }, [count, cols, rows, localMax, summary, selectedNeuronIndex, cellSize, spacing]);
+  }, [count, cols, rows, localMax, summary, cellSize, spacing]);
+
+  const selectedPos =
+    selectedNeuronIndex != null && selectedNeuronIndex < count
+      ? {
+          x:
+            ((selectedNeuronIndex % cols) - (cols - 1) / 2) * spacing,
+          y:
+            (Math.floor(selectedNeuronIndex / cols) - (rows - 1) / 2) *
+            spacing,
+        }
+      : null;
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     if (!interactive) return;
@@ -90,19 +96,34 @@ export function NeuronGrid({
   };
 
   return (
-    <instancedMesh
-      ref={meshRef}
-      args={[
-        undefined as unknown as THREE.BufferGeometry,
-        undefined as unknown as THREE.Material,
-        MAX_INSTANCES,
-      ]}
-      position={[0, originY, 0]}
-      frustumCulled={false}
-      onClick={interactive ? handleClick : undefined}
-    >
-      <boxGeometry args={[1, 1, 1]} />
-      <meshBasicMaterial toneMapped={false} />
-    </instancedMesh>
+    <group position={[0, originY, 0]}>
+      <instancedMesh
+        ref={meshRef}
+        args={[
+          undefined as unknown as THREE.BufferGeometry,
+          undefined as unknown as THREE.Material,
+          MAX_INSTANCES,
+        ]}
+        frustumCulled={false}
+        onClick={interactive ? handleClick : undefined}
+      >
+        <boxGeometry args={[1, 1, 1]} />
+        <meshBasicMaterial toneMapped={false} />
+      </instancedMesh>
+      {selectedPos && (
+        <mesh position={[selectedPos.x, selectedPos.y, 0]}>
+          <boxGeometry
+            args={[cellSize * 1.9, cellSize * 1.9, cellSize * 1.9]}
+          />
+          <meshBasicMaterial
+            color="#ffffff"
+            wireframe
+            transparent
+            opacity={0.9}
+            toneMapped={false}
+          />
+        </mesh>
+      )}
+    </group>
   );
 }
