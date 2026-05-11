@@ -8,12 +8,19 @@ Inference-only. Models never leave your machine. Targets small models
 (<50 MB, <~50M params): MNIST CNNs, tiny ResNets, nano-GPT class
 transformers. Not for 7B+ LLMs.
 
-## Status: Phase 1 — skeleton
+## Status: Phase 2 — model loading & static layout
 
 - [x] Next.js 16 + React Three Fiber + Tailwind 4 + Zustand boilerplate
-- [x] R3F Canvas with OrbitControls, dark scene, placeholder block, grid
+- [x] R3F Canvas with OrbitControls, dark scene, grid, fog
 - [x] Sidebar shell showing model state from Zustand store
-- [ ] Phase 2: ONNX drag-drop + graph parse + per-layer blocks
+- [x] Drag-drop `.onnx` loader (50 MB cap, .onnx ext check)
+- [x] ONNX protobuf parse via `onnx-proto` → `Graph` with `Layer` + `LayerGroup`
+- [x] Op fusion (Conv/Gemm/MatMul ← BN ← activation) into single block
+- [x] Topological 3D layout: X = depth, Z = branch lane, Y/Z size = log(params)/log(channels)
+- [x] Op-keyed color palette + clickable LayerBlock with floating label
+- [x] Auto-fit camera on model load via drei `<Bounds>`
+- [x] Selected-layer inspector card (id, params, shapes, fused ops)
+- [x] 500-logical-layer cap with head/middle-placeholder/tail collapse
 - [ ] Phase 3: `onnxruntime-web` in Web Worker + intermediate activations
 - [ ] Phase 4: activation visualization + signal packet animation
 - [ ] Phase 5: LOD manager + semantic zoom + inspector panel
