@@ -115,6 +115,39 @@ ctx.onmessage = async (e: MessageEvent<WorkerRequest>) => {
         },
         [buf],
       );
+    } else if (msg.kind === 'switch-provider') {
+      if (!cachedModel) {
+        throw new Error('no cached model for provider switch');
+      }
+      try {
+        await session?.release?.();
+      } catch {
+        /* ignore */
+      }
+      session = null;
+      const encoded = onnx.ModelProto.encode(cachedModel).finish();
+      const bytes = new Uint8Array(encoded);
+      const preferred = msg.executionProvider;
+      const tryProviders: ('webgpu' | 'wasm')[] =
+        preferred === 'webgpu' ? ['webgpu', 'wasm'] : ['wasm'];
+      let active: 'webgpu' | 'wasm' = 'wasm';
+      let lastErr: Error | null = null;
+      for (const ep of tryProviders) {
+        try {
+          session = await ort.InferenceSession.create(bytes, {
+            executionProviders: [ep],
+            graphOptimizationLevel: 'all',
+          });
+          active = ep;
+          lastErr = null;
+          break;
+        } catch (e) {
+          lastErr = e as Error;
+          session = null;
+        }
+      }
+      if (!session) throw lastErr ?? new Error('switch failed');
+      post({ kind: 'switch-provider-ok', id: msg.id, activeProvider: active });
     } else if (msg.kind === 'dispose') {
       try {
         await session?.release?.();

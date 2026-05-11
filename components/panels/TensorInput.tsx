@@ -14,10 +14,7 @@ export function TensorInput({ dims }: Props) {
   const isInferring = useScopeStore((s) => s.isInferring);
   const lastRunMs = useScopeStore((s) => s.lastRunMs);
 
-  const resolvedDims = useMemo(
-    () => dims.map((d) => (d > 0 ? d : 1)),
-    [dims],
-  );
+  const resolvedDims = useMemo(() => dims.map((d) => (d > 0 ? d : 1)), [dims]);
   const expectedLength = useMemo(
     () => resolvedDims.reduce((a, b) => a * b, 1),
     [resolvedDims],
@@ -83,19 +80,19 @@ export function TensorInput({ dims }: Props) {
 
   return (
     <section className="flex flex-col gap-2 rounded border border-zinc-800 p-3">
-      <div className="text-[10px] uppercase tracking-wider text-zinc-500">
+      <div className="text-[10px] tracking-wider text-zinc-500 uppercase">
         Input · raw tensor [{dims.join('×') || '?'}]
       </div>
-      <div className="text-[10px] text-zinc-500 leading-relaxed">
-        Paste a JSON array of {expectedLength.toLocaleString()} numbers (it
-        will reshape to the input dims in row-major order).
+      <div className="text-[10px] leading-relaxed text-zinc-500">
+        Paste a JSON array of {expectedLength.toLocaleString()} numbers (it will
+        reshape to the input dims in row-major order).
       </div>
       <textarea
         value={raw}
         onChange={(e) => setRaw(e.target.value)}
         rows={4}
         placeholder="[0.1, 0.2, …]"
-        className="rounded border border-zinc-700 bg-zinc-900 p-1.5 text-[10px] font-mono text-zinc-200"
+        className="rounded border border-zinc-700 bg-zinc-900 p-1.5 font-mono text-[10px] text-zinc-200"
       />
       <div className="flex gap-1">
         <button
@@ -112,9 +109,10 @@ export function TensorInput({ dims }: Props) {
         </button>
       </div>
       <button
+        type="button"
         onClick={() => void run()}
         disabled={sessionStatus !== 'ready' || isInferring}
-        className="rounded bg-cyan-500 px-2 py-1.5 text-[11px] font-semibold text-black hover:bg-cyan-400 disabled:bg-zinc-700 disabled:text-zinc-500 disabled:cursor-not-allowed"
+        className="min-h-[44px] rounded bg-cyan-500 px-3 py-2 text-xs font-semibold text-black hover:bg-cyan-400 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
       >
         {isInferring
           ? 'Running…'

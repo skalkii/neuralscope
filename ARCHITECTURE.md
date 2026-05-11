@@ -215,13 +215,13 @@ Single Zustand store, `lib/store/useScopeStore.ts`. Sliced fields:
 Defined inside `lib/onnx/inferenceWorker.ts` and mirrored in
 `lib/onnx/inferenceClient.ts`. Messages:
 
-| Client → Worker | Worker → Client | Notes |
-|---|---|---|
+| Client → Worker                          | Worker → Client                                                   | Notes                                                                                              |
+| ---------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
 | `init { modelBytes, executionProvider }` | `init-ok { inputNames, outputNames, addedCount, activeProvider }` | Worker decodes ModelProto, patches outputs, creates session. WebGPU falls back to WASM on failure. |
-| `run { feeds }` | `run-ok { outputs, elapsed }` | Tensor buffers transferred both ways. |
-| `extract-weights { layerInputs }` | `extract-weights-ok { weights }` | Uses cached ModelProto, no re-decode. |
-| `dispose` | (none) | Releases session + clears cached ModelProto. |
-| any | `err { id, message }` | Generic error path. |
+| `run { feeds }`                          | `run-ok { outputs, elapsed }`                                     | Tensor buffers transferred both ways.                                                              |
+| `extract-weights { layerInputs }`        | `extract-weights-ok { weights }`                                  | Uses cached ModelProto, no re-decode.                                                              |
+| `dispose`                                | (none)                                                            | Releases session + clears cached ModelProto.                                                       |
+| any                                      | `err { id, message }`                                             | Generic error path.                                                                                |
 
 ## Performance budget
 

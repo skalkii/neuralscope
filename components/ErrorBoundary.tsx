@@ -41,7 +41,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <div className="text-sm font-semibold text-red-300">
             Scene crashed
           </div>
-          <pre className="max-w-lg whitespace-pre-wrap text-[11px] text-zinc-400">
+          <pre className="max-w-lg text-[11px] whitespace-pre-wrap text-zinc-400">
             {this.state.error.message}
           </pre>
           <button

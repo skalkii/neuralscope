@@ -6,6 +6,7 @@ import { Html } from '@react-three/drei';
 import { viridis } from '@/lib/colormaps';
 import type { WeightTensor } from '@/lib/onnx/extractWeights';
 import { WEIGHT_HEATMAP } from '@/lib/config';
+import { instancedMeshArgs } from '@/lib/scene/instancedMeshArgs';
 
 const tmpObj = new THREE.Object3D();
 const tmpColor = new THREE.Color();
@@ -104,11 +105,7 @@ export function WeightHeatmap({ weights, originY }: Props) {
     <group position={[0, originY, 0]}>
       <instancedMesh
         ref={meshRef}
-        args={[
-          undefined as unknown as THREE.BufferGeometry,
-          undefined as unknown as THREE.Material,
-          count,
-        ]}
+        args={instancedMeshArgs(count)}
         frustumCulled={false}
       >
         <boxGeometry args={[1, 1, 1]} />
@@ -120,7 +117,7 @@ export function WeightHeatmap({ weights, originY }: Props) {
         center
         style={{ pointerEvents: 'none', userSelect: 'none' }}
       >
-        <div className="px-1.5 py-0.5 text-[10px] rounded bg-purple-950/80 text-purple-100 border border-purple-700 font-mono whitespace-nowrap">
+        <div className="rounded border border-purple-700 bg-purple-950/80 px-1.5 py-0.5 font-mono text-[10px] whitespace-nowrap text-purple-100">
           W [{weights.dims.join('×')}]
           {sub && (
             <span className="text-purple-300/70">

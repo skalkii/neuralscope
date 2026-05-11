@@ -7,6 +7,7 @@ import type { GroupSummary } from '@/lib/onnx/summarize';
 import { magma } from '@/lib/colormaps';
 import { useScopeStore } from '@/lib/store/useScopeStore';
 import { NEURON_GRID } from '@/lib/config';
+import { instancedMeshArgs } from '@/lib/scene/instancedMeshArgs';
 
 const tmpObj = new THREE.Object3D();
 const tmpColor = new THREE.Color();
@@ -94,11 +95,7 @@ export function NeuronGrid({
     <group position={[0, originY, 0]}>
       <instancedMesh
         ref={meshRef}
-        args={[
-          undefined as unknown as THREE.BufferGeometry,
-          undefined as unknown as THREE.Material,
-          MAX_INSTANCES,
-        ]}
+        args={instancedMeshArgs(MAX_INSTANCES)}
         frustumCulled={false}
         onClick={interactive ? handleClick : undefined}
       >

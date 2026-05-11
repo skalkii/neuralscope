@@ -106,16 +106,16 @@ export function MnistInput() {
 
   return (
     <section className="flex flex-col gap-2 rounded border border-zinc-800 p-3">
-      <div className="text-[10px] uppercase tracking-wider text-zinc-500">
+      <div className="text-[10px] tracking-wider text-zinc-500 uppercase">
         Input · MNIST 28×28
       </div>
 
-      <div className="flex flex-col gap-2 items-center">
+      <div className="flex flex-col items-center gap-2">
         <canvas
           ref={canvasRef}
           width={DISPLAY}
           height={DISPLAY}
-          className="rounded border border-zinc-700 cursor-crosshair touch-none"
+          className="cursor-crosshair touch-none rounded border border-zinc-700"
           onPointerDown={(e) => {
             drawingRef.current = true;
             (e.target as Element).setPointerCapture(e.pointerId);
@@ -133,9 +133,10 @@ export function MnistInput() {
         />
         <div className="flex gap-2 self-stretch">
           <button
+            type="button"
             onClick={() => void run()}
             disabled={sessionStatus !== 'ready' || isInferring}
-            className="flex-1 rounded bg-cyan-500 px-2 py-1.5 text-[11px] font-semibold text-black hover:bg-cyan-400 disabled:bg-zinc-700 disabled:text-zinc-500 disabled:cursor-not-allowed"
+            className="min-h-[44px] flex-1 rounded bg-cyan-500 px-3 py-2 text-xs font-semibold text-black hover:bg-cyan-400 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
           >
             {isInferring
               ? 'Running…'
@@ -144,8 +145,10 @@ export function MnistInput() {
                 : 'Run inference'}
           </button>
           <button
+            type="button"
             onClick={clear}
-            className="rounded border border-zinc-700 px-2 py-1.5 text-[11px] text-zinc-300 hover:bg-zinc-900"
+            className="min-h-[44px] rounded border border-zinc-700 px-3 py-2 text-xs text-zinc-200 hover:bg-zinc-900 focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:outline-none"
+            aria-label="Clear the canvas"
           >
             clear
           </button>

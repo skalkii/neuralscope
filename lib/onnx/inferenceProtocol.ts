@@ -26,12 +26,19 @@ export type WorkerExtractWeights = {
   layerInputs: string[];
 };
 
+export type WorkerSwitchProvider = {
+  kind: 'switch-provider';
+  id: number;
+  executionProvider: ExecutionProviderName;
+};
+
 export type WorkerDispose = { kind: 'dispose' };
 
 export type WorkerRequest =
   | WorkerInit
   | WorkerRun
   | WorkerExtractWeights
+  | WorkerSwitchProvider
   | WorkerDispose;
 
 export type WorkerInitOk = {
@@ -56,10 +63,17 @@ export type WorkerExtractWeightsOk = {
   weights: { name: string; dims: number[]; data: ArrayBuffer } | null;
 };
 
+export type WorkerSwitchProviderOk = {
+  kind: 'switch-provider-ok';
+  id: number;
+  activeProvider: ExecutionProviderName;
+};
+
 export type WorkerErr = { kind: 'err'; id: number; message: string };
 
 export type WorkerResponse =
   | WorkerInitOk
   | WorkerRunOk
   | WorkerExtractWeightsOk
+  | WorkerSwitchProviderOk
   | WorkerErr;

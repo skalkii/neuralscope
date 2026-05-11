@@ -43,6 +43,22 @@ function dimsFromInitializer(dims: ReadonlyArray<unknown>): number[] {
   return dims.map(toNumber);
 }
 
+/**
+ * Decode an ONNX `ModelProto` into a NeuralScope `Graph`.
+ *
+ * Steps:
+ *   1. `onnx.ModelProto.decode` the bytes (throws ParseError on fail).
+ *   2. Build initializer → param-count map.
+ *   3. Build tensor → shape map from `graph.input/output/valueInfo`.
+ *   4. Walk `graph.node[]` to produce `Layer[]`.
+ *   5. Fuse `BN/activation` children into their producer when the
+ *      producer has exactly one consumer (Conv+BN+ReLU → one block).
+ *   6. Cap at MAX_LOGICAL_LAYERS; collapse middle when exceeded.
+ *
+ * @param bytes     Raw `.onnx` file contents.
+ * @param modelName Stored on the returned graph for the inspector.
+ * @throws ParseError on malformed protobuf or missing `graph`.
+ */
 export function parseOnnxBytes(bytes: Uint8Array, modelName: string): Graph {
   let model: onnx.ModelProto;
   try {
@@ -100,9 +116,9 @@ export function parseOnnxBytes(bytes: Uint8Array, modelName: string): Graph {
     }
 
     const activationIn = nodeInputs.find((nm) => !initNames.has(nm));
-    const inputShape = activationIn ? shapeMap[activationIn] ?? null : null;
+    const inputShape = activationIn ? (shapeMap[activationIn] ?? null) : null;
     const outputShape =
-      nodeOutputs.length > 0 ? shapeMap[nodeOutputs[0]] ?? null : null;
+      nodeOutputs.length > 0 ? (shapeMap[nodeOutputs[0]] ?? null) : null;
 
     layers.push({
       id,

@@ -107,11 +107,14 @@ export function ImageInput({ layout, width, height }: Props) {
 
   return (
     <section className="flex flex-col gap-2 rounded border border-zinc-800 p-3">
-      <div className="text-[10px] uppercase tracking-wider text-zinc-500">
+      <div className="text-[10px] tracking-wider text-zinc-500 uppercase">
         Input · {layout} {width}×{height}
       </div>
 
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={`Drop an image here or press Enter to choose one. Will be resized to ${width}×${height} ${layout}.`}
         onDragOver={(e) => {
           e.preventDefault();
           setDragging(true);
@@ -124,10 +127,16 @@ export function ImageInput({ layout, width, height }: Props) {
           if (f) void accept(f);
         }}
         onClick={() => inputRef.current?.click()}
-        className={`cursor-pointer rounded border border-dashed p-2 text-center text-[11px] transition-colors ${
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            inputRef.current?.click();
+          }
+        }}
+        className={`min-h-[44px] cursor-pointer rounded border border-dashed p-2 text-center text-[11px] transition-colors focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:outline-none ${
           dragging
             ? 'border-cyan-400 bg-cyan-950/30 text-cyan-200'
-            : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+            : 'border-zinc-700 text-zinc-300 hover:border-zinc-500'
         }`}
       >
         {previewUrl ? (
@@ -137,7 +146,7 @@ export function ImageInput({ layout, width, height }: Props) {
               src={resampledPreview ?? previewUrl}
               alt={`input preview at ${width}×${height}`}
               style={{ imageRendering: 'pixelated' }}
-              className="max-h-32 mx-auto rounded border border-zinc-800"
+              className="mx-auto max-h-32 rounded border border-zinc-800"
             />
             <span className="text-[10px] text-zinc-500">
               model sees {width}×{height} {layout}
@@ -146,7 +155,7 @@ export function ImageInput({ layout, width, height }: Props) {
         ) : (
           <>
             <div>Drop an image · or click</div>
-            <div className="text-[10px] text-zinc-500 mt-1">
+            <div className="mt-1 text-[10px] text-zinc-500">
               resized to {width}×{height}, {layout}
             </div>
           </>
@@ -169,7 +178,7 @@ export function ImageInput({ layout, width, height }: Props) {
         <select
           value={normalize}
           onChange={(e) => setNormalize(e.target.value as ImageNormalize)}
-          className="bg-zinc-900 border border-zinc-700 rounded px-1.5 py-0.5 text-zinc-200 text-[10px]"
+          className="rounded border border-zinc-700 bg-zinc-900 px-1.5 py-0.5 text-[10px] text-zinc-200"
         >
           {NORMALIZE_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>
@@ -180,9 +189,10 @@ export function ImageInput({ layout, width, height }: Props) {
       </label>
 
       <button
+        type="button"
         onClick={() => void run()}
         disabled={!bitmap || sessionStatus !== 'ready' || isInferring}
-        className="rounded bg-cyan-500 px-2 py-1.5 text-[11px] font-semibold text-black hover:bg-cyan-400 disabled:bg-zinc-700 disabled:text-zinc-500 disabled:cursor-not-allowed"
+        className="min-h-[44px] rounded bg-cyan-500 px-3 py-2 text-xs font-semibold text-black hover:bg-cyan-400 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
       >
         {isInferring
           ? 'Running…'

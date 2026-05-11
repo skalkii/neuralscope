@@ -36,8 +36,7 @@ export function ModelLoader() {
         const buf = new Uint8Array(await file.arrayBuffer());
         loadOnnxFromBytes(buf, file.name);
       } catch (e) {
-        const msg =
-          e instanceof LoadError ? e.message : (e as Error).message;
+        const msg = e instanceof LoadError ? e.message : (e as Error).message;
         setLoadError({ message: msg });
       } finally {
         setBusy(false);
@@ -68,35 +67,51 @@ export function ModelLoader() {
   const firstInput = graph?.inputs[0];
   const firstInputShape = firstInput ? graph?.inputShapes[firstInput] : null;
 
+  const openPicker = () => inputRef.current?.click();
+  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openPicker();
+    }
+  };
+
   return (
     <div className="flex flex-col gap-2">
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={
+          modelName
+            ? `Loaded model ${modelName}. Click or press Enter to load another.`
+            : 'Drop an ONNX model file here, or press Enter to pick one.'
+        }
         onDragOver={(e) => {
           e.preventDefault();
           setDragging(true);
         }}
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
-        onClick={() => inputRef.current?.click()}
-        className={`cursor-pointer rounded border-2 border-dashed p-3 text-center text-xs transition-colors ${
+        onClick={openPicker}
+        onKeyDown={onKeyDown}
+        className={`min-h-[44px] cursor-pointer rounded border-2 border-dashed p-3 text-center text-xs transition-colors focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:outline-none ${
           dragging
             ? 'border-cyan-400 bg-cyan-950/30 text-cyan-200'
-            : 'border-zinc-700 text-zinc-400 hover:border-zinc-500'
+            : 'border-zinc-700 text-zinc-300 hover:border-zinc-500'
         }`}
       >
         {busy ? (
           'Parsing…'
         ) : modelName ? (
           <span>
-            <span className="block text-zinc-200 break-all">{modelName}</span>
-            <span className="block text-[10px] text-zinc-500 mt-1">
+            <span className="block break-all text-zinc-200">{modelName}</span>
+            <span className="mt-1 block text-[10px] text-zinc-500">
               click or drop another
             </span>
           </span>
         ) : (
           <>
             <div>Drop .onnx here</div>
-            <div className="text-[10px] text-zinc-500 mt-1">
+            <div className="mt-1 text-[10px] text-zinc-500">
               or click · max 50 MB
             </div>
           </>
@@ -117,13 +132,13 @@ export function ModelLoader() {
       )}
 
       {graph && (
-        <div className="text-[10px] text-zinc-500 leading-relaxed font-mono">
+        <div className="font-mono text-[10px] leading-relaxed text-zinc-500">
           <div>
             {graph.groups.length} layers · {graph.layers.length} nodes
           </div>
           <div>{(graph.paramCount / 1e6).toFixed(2)} M params</div>
           {graph.truncated && (
-            <div className="text-amber-400 mt-1">
+            <div className="mt-1 text-amber-400">
               {'>'} 500 layers; middle collapsed
             </div>
           )}
@@ -138,7 +153,7 @@ export function ModelLoader() {
       {modelName && (
         <button
           onClick={clearModel}
-          className="self-start text-[10px] text-zinc-500 hover:text-zinc-300 underline"
+          className="self-start text-[10px] text-zinc-500 underline hover:text-zinc-300"
         >
           clear model
         </button>

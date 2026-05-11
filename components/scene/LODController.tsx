@@ -5,7 +5,12 @@ import { useFrame } from '@react-three/fiber';
 import { useScopeStore, type LodLevel } from '@/lib/store/useScopeStore';
 import { LOD } from '@/lib/config';
 
-const { FAR_THRESHOLD, MID_THRESHOLD, NEAR_HARD_MAX, RECOMPUTE_EVERY_N_FRAMES } = LOD;
+const {
+  FAR_THRESHOLD,
+  MID_THRESHOLD,
+  NEAR_HARD_MAX,
+  RECOMPUTE_EVERY_N_FRAMES,
+} = LOD;
 
 export function LODController() {
   const prevRef = useRef<{
@@ -57,8 +62,7 @@ export function LODController() {
       else if (d > MID_THRESHOLD) newMap[id] = 'mid';
       else newMap[id] = id === nearestId ? 'near' : 'mid';
     }
-    const near =
-      nearestId && nearestDist <= NEAR_HARD_MAX ? nearestId : null;
+    const near = nearestId && nearestDist <= NEAR_HARD_MAX ? nearestId : null;
     if (near === null) {
       for (const id of ids) if (newMap[id] === 'near') newMap[id] = 'mid';
     }

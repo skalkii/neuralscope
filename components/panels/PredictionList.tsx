@@ -24,12 +24,12 @@ export function PredictionList({ predictions, lastRunMs }: Props) {
   };
 
   return (
-    <div className="flex flex-col gap-1 text-[11px] font-mono">
+    <div className="flex flex-col gap-1 font-mono text-[11px]">
       <div className="flex items-center justify-between text-zinc-500">
         <span>top-{predictions.length}:</span>
         <button
           onClick={copy}
-          className="rounded border border-zinc-800 px-1 text-[10px] text-zinc-400 hover:text-zinc-200 hover:border-zinc-600"
+          className="rounded border border-zinc-800 px-1 text-[10px] text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
           aria-label="Copy predictions to clipboard"
         >
           {copied ? 'copied' : 'copy'}
@@ -37,22 +37,22 @@ export function PredictionList({ predictions, lastRunMs }: Props) {
       </div>
       {predictions.map((p) => (
         <div key={p.label} className="flex items-center gap-2">
-          <span className="text-zinc-200 w-16 truncate" title={p.label}>
+          <span className="w-16 truncate text-zinc-200" title={p.label}>
             {p.label}
           </span>
-          <div className="flex-1 h-1.5 bg-zinc-800 rounded overflow-hidden">
+          <div className="h-1.5 flex-1 overflow-hidden rounded bg-zinc-800">
             <div
               className="h-full bg-cyan-400"
               style={{ width: `${(p.score * 100).toFixed(0)}%` }}
             />
           </div>
-          <span className="text-zinc-400 w-12 text-right">
+          <span className="w-12 text-right text-zinc-400">
             {(p.score * 100).toFixed(1)}%
           </span>
         </div>
       ))}
       {lastRunMs != null && (
-        <div className="text-[10px] text-zinc-500 font-mono">
+        <div className="font-mono text-[10px] text-zinc-500">
           last run: {lastRunMs.toFixed(1)} ms
         </div>
       )}

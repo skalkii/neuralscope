@@ -38,8 +38,8 @@ will block the merge otherwise.
   type-system boundaries (Three.js InstancedMesh args, transferable
   ArrayBuffer slices) — document them with a one-line comment when
   non-obvious.
-- **Default to no comments.** Only add one when the *why* is
-  non-obvious. Don't explain *what* the code does; well-named
+- **Default to no comments.** Only add one when the _why_ is
+  non-obvious. Don't explain _what_ the code does; well-named
   identifiers do that.
 - **No new files unless necessary.** Prefer editing existing
   modules.
@@ -58,7 +58,7 @@ Run in watch mode: `pnpm test:watch`.
 
 ## Commit messages
 
-Body explains the *why*, not the *what* — the diff already shows
+Body explains the _why_, not the _what_ — the diff already shows
 the what.
 
 ```

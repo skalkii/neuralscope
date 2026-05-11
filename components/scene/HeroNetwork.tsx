@@ -4,6 +4,7 @@ import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { magma } from '@/lib/colormaps';
+import { instancedMeshArgs } from '@/lib/scene/instancedMeshArgs';
 
 const PALETTE = [
   { color: '#22d3ee', emissive: '#0e7490' },
@@ -53,8 +54,7 @@ function HeroBlock({ index }: { index: number }) {
         tmpObj.updateMatrix();
         mesh.setMatrixAt(i, tmpObj.matrix);
 
-        const shimmer =
-          0.5 + 0.5 * Math.sin(t * 1.6 + index * 0.7 + i * 0.42);
+        const shimmer = 0.5 + 0.5 * Math.sin(t * 1.6 + index * 0.7 + i * 0.42);
         const v = Math.min(1, shimmer * (0.35 + 0.95 * arrival));
         const [r, g, b] = magma(v);
         tmpColor.setRGB(r, g, b);
@@ -81,11 +81,7 @@ function HeroBlock({ index }: { index: number }) {
       </mesh>
       <instancedMesh
         ref={gridRef}
-        args={[
-          undefined as unknown as THREE.BufferGeometry,
-          undefined as unknown as THREE.Material,
-          NEURONS_PER_BLOCK,
-        ]}
+        args={instancedMeshArgs(NEURONS_PER_BLOCK)}
         position={[0, heightMod / 2 + 0.55, 0]}
         frustumCulled={false}
       >

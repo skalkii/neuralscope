@@ -67,7 +67,7 @@ export function ExampleModels() {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="text-[10px] uppercase tracking-wider text-zinc-500">
+      <div className="text-[10px] tracking-wider text-zinc-500 uppercase">
         Example models
       </div>
       <ul className="flex flex-col gap-1.5">
@@ -82,22 +82,22 @@ export function ExampleModels() {
                 onClick={() => void load(m)}
                 aria-current={active ? 'true' : undefined}
                 aria-label={`Load example model ${m.title}, ${m.input}`}
-                className={`w-full text-left rounded border p-2 text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
+                className={`w-full rounded border p-2 text-left text-[11px] transition-colors focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:outline-none ${
                   active
                     ? 'border-cyan-600 bg-cyan-950/30'
                     : 'border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900/40'
-                } disabled:opacity-60 disabled:cursor-wait`}
+                } disabled:cursor-wait disabled:opacity-60`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-medium text-zinc-100">{m.title}</span>
-                  <span className="text-[10px] text-zinc-500 font-mono shrink-0">
+                  <span className="shrink-0 font-mono text-[10px] text-zinc-500">
                     {busy ? '…' : fmtSize(m.sizeBytes)}
                   </span>
                 </div>
-                <div className="text-zinc-400 mt-0.5 leading-snug">
+                <div className="mt-0.5 leading-snug text-zinc-400">
                   {m.description}
                 </div>
-                <div className="text-[10px] text-zinc-500 font-mono mt-1">
+                <div className="mt-1 font-mono text-[10px] text-zinc-500">
                   {m.input}
                 </div>
               </button>

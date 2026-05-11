@@ -25,7 +25,7 @@ export function labelLookupFor(
   if (outputLen === labels.length + 1) {
     // background class at index 0 (some ONNX zoo models)
     return (idx: number) =>
-      idx === 0 ? 'background' : labels[idx - 1] ?? String(idx);
+      idx === 0 ? 'background' : (labels[idx - 1] ?? String(idx));
   }
   return null;
 }

@@ -42,10 +42,7 @@ async function main() {
     const dstPath = join(dst, name);
     let needsCopy = true;
     try {
-      const [sStat, dStat] = await Promise.all([
-        stat(srcPath),
-        stat(dstPath),
-      ]);
+      const [sStat, dStat] = await Promise.all([stat(srcPath), stat(dstPath)]);
       if (dStat.size === sStat.size && dStat.mtimeMs >= sStat.mtimeMs) {
         needsCopy = false;
       }

@@ -56,6 +56,18 @@ function getWorker(): Worker {
   return worker;
 }
 
+/**
+ * Boot the worker, ship it the model bytes, await session creation.
+ * Patches every node-output into `graph.output` worker-side so the
+ * first (and every) run returns intermediate activations.
+ *
+ * @param bytes              Raw `.onnx` bytes. Buffer is transferred
+ *                            to the worker; do not reuse.
+ * @param executionProvider  'wasm' (default) or 'webgpu'. WebGPU
+ *                            silently falls back to WASM if init fails;
+ *                            `activeProvider` on the returned InitInfo
+ *                            reports the resolved EP.
+ */
 export async function initInference(
   bytes: Uint8Array,
   executionProvider: ExecutionProviderName = 'wasm',
@@ -79,6 +91,11 @@ export async function initInference(
   };
 }
 
+/**
+ * Run inference with the given feeds. All input + output tensor
+ * buffers are transferred over `postMessage`, so caller-owned
+ * Float32Arrays should not be reused after this call returns.
+ */
 export async function runInference(
   feeds: Record<string, TensorPayload>,
 ): Promise<RunResult> {
@@ -114,6 +131,12 @@ export async function runInference(
   return { outputs, elapsedMs: msg.elapsed };
 }
 
+/**
+ * Pull the first float32 ≥2D initializer that matches any of the
+ * given input tensor names. Worker uses its cached `ModelProto` —
+ * no protobuf decode. Returns null if the worker isn't running or
+ * no matching initializer exists (activation-only ops like Relu, Add).
+ */
 export async function extractWeights(
   layerInputs: string[],
 ): Promise<{ name: string; dims: number[]; data: Float32Array } | null> {
@@ -132,6 +155,30 @@ export async function extractWeights(
     dims: msg.weights.dims,
     data: new Float32Array(msg.weights.data),
   };
+}
+
+/**
+ * Recreate the inference session in the worker using a different
+ * execution provider but the **same** cached model. Avoids the
+ * full ModelProto decode + patchOutputs round-trip that
+ * initInference performs. Returns the provider that actually
+ * initialized (WASM if WebGPU was requested but failed). Returns
+ * null when no worker exists yet — caller should fall back to
+ * initInference.
+ */
+export async function switchProvider(
+  executionProvider: ExecutionProviderName,
+): Promise<ExecutionProviderName | null> {
+  if (!worker) return null;
+  const w = getWorker();
+  const id = ++seq;
+  const promise = new Promise<WorkerResponse>((resolve, reject) => {
+    pending.set(id, { resolve, reject });
+  });
+  w.postMessage({ kind: 'switch-provider', id, executionProvider });
+  const msg = await promise;
+  if (msg.kind !== 'switch-provider-ok') throw new Error('unexpected response');
+  return msg.activeProvider;
 }
 
 export function disposeInference(): void {

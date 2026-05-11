@@ -7,10 +7,7 @@ import * as THREE from 'three';
 import { useScopeStore } from '@/lib/store/useScopeStore';
 import { paletteFor, collapsedPalette } from '@/lib/onnx/opPalette';
 import { extractWeights } from '@/lib/onnx/inferenceClient';
-import {
-  registerBlock,
-  unregisterBlock,
-} from '@/lib/scene/animationRegistry';
+import { registerBlock, unregisterBlock } from '@/lib/scene/animationRegistry';
 import { NeuronGrid } from './NeuronGrid';
 import { WeightHeatmap } from './WeightHeatmap';
 import type { LayerGroup, LayerLayoutItem } from '@/lib/onnx/types';
@@ -68,7 +65,12 @@ export function LayerBlock({ group, item }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [shouldExtractWeights, group.id, group.primary.inputs, setWeightsForGroup]);
+  }, [
+    shouldExtractWeights,
+    group.id,
+    group.primary.inputs,
+    setWeightsForGroup,
+  ]);
 
   const handleOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
@@ -86,9 +88,7 @@ export function LayerBlock({ group, item }: Props) {
   const labelText =
     group.label.length > 28 ? group.label.slice(0, 26) + '…' : group.label;
   const showGrid =
-    summary &&
-    summary.values.length > 0 &&
-    (lod === 'mid' || lod === 'near');
+    summary && summary.values.length > 0 && (lod === 'mid' || lod === 'near');
   const gridCell = isNear ? NEURON_GRID.NEAR_CELL : NEURON_GRID.MID_CELL;
   const gridSpacing = isNear
     ? NEURON_GRID.NEAR_SPACING
@@ -142,12 +142,12 @@ export function LayerBlock({ group, item }: Props) {
         style={{ pointerEvents: 'none', userSelect: 'none' }}
       >
         <div
-          className={`px-1.5 py-0.5 text-[10px] rounded whitespace-nowrap font-mono ${
+          className={`rounded px-1.5 py-0.5 font-mono text-[10px] whitespace-nowrap ${
             selected
               ? 'bg-cyan-400 text-black'
               : isNear
-                ? 'bg-cyan-900/80 text-cyan-100 border border-cyan-700'
-                : 'bg-zinc-900/80 text-zinc-200 border border-zinc-700'
+                ? 'border border-cyan-700 bg-cyan-900/80 text-cyan-100'
+                : 'border border-zinc-700 bg-zinc-900/80 text-zinc-200'
           }`}
         >
           {labelText}

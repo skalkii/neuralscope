@@ -25,8 +25,7 @@ function classify(shape: number[] | null | undefined): Mode {
     const W = w > 0 ? w : 224;
     if (c === 1)
       return { kind: 'image', layout: 'grayscale', width: W, height: H };
-    if (c === 3)
-      return { kind: 'image', layout: 'rgb', width: W, height: H };
+    if (c === 3) return { kind: 'image', layout: 'rgb', width: W, height: H };
   }
   return { kind: 'tensor', dims: shape };
 }
@@ -52,7 +51,7 @@ export function InputPanel() {
   if (sessionStatus === 'error' && sessionError) {
     return (
       <section className="rounded border border-red-700 bg-red-950/40 p-3 text-[11px] text-red-200">
-        <div className="font-semibold mb-1">Session failed</div>
+        <div className="mb-1 font-semibold">Session failed</div>
         <div>{sessionError}</div>
       </section>
     );

@@ -26,8 +26,8 @@ export function EngineToggle() {
   };
 
   return (
-    <div className="rounded border border-zinc-800 p-2 flex flex-col gap-1">
-      <div className="text-[10px] uppercase tracking-wider text-zinc-500">
+    <div className="flex flex-col gap-1 rounded border border-zinc-800 p-2">
+      <div className="text-[10px] tracking-wider text-zinc-500 uppercase">
         Engine
       </div>
       <div className="flex gap-1" role="group" aria-label="Inference engine">
@@ -35,7 +35,7 @@ export function EngineToggle() {
           type="button"
           onClick={() => choose('wasm')}
           aria-pressed={executionProvider === 'wasm'}
-          className={`flex-1 rounded px-2 py-1 text-[10px] font-mono border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
+          className={`flex-1 rounded border px-2 py-1 font-mono text-[10px] focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:outline-none ${
             executionProvider === 'wasm'
               ? 'border-cyan-500 bg-cyan-950/40 text-cyan-200'
               : 'border-zinc-700 text-zinc-400 hover:bg-zinc-900'
@@ -53,17 +53,17 @@ export function EngineToggle() {
               ? 'navigator.gpu is undefined in this browser'
               : 'WebGPU (falls back to WASM if init fails)'
           }
-          className={`flex-1 rounded px-2 py-1 text-[10px] font-mono border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
+          className={`flex-1 rounded border px-2 py-1 font-mono text-[10px] focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:outline-none ${
             executionProvider === 'webgpu'
               ? 'border-cyan-500 bg-cyan-950/40 text-cyan-200'
               : 'border-zinc-700 text-zinc-400 hover:bg-zinc-900'
-          } disabled:opacity-40 disabled:cursor-not-allowed`}
+          } disabled:cursor-not-allowed disabled:opacity-40`}
         >
           WebGPU
         </button>
       </div>
       {sessionStatus === 'ready' && activeProvider && (
-        <div className="text-[10px] text-zinc-500 font-mono">
+        <div className="font-mono text-[10px] text-zinc-500">
           active: <span className="text-zinc-200">{activeProvider}</span>
           {activeProvider !== executionProvider && (
             <span className="text-amber-400"> (fallback)</span>

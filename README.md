@@ -5,7 +5,7 @@
 
 NeuralScope is a **local-first, browser-based 3D inspector** for small
 ONNX neural networks. No backend. No uploads. The model never leaves
-your machine. Built for students and engineers who want to *see* what
+your machine. Built for students and engineers who want to _see_ what
 their model is doing instead of staring at loss curves.
 
 > **Screenshots / demo:** drop a GIF + still frames into a `docs/` folder
@@ -20,17 +20,18 @@ their model is doing instead of staring at loss curves.
 
 ## What it does
 
-| | |
-|---|---|
-| **Loads** | `.onnx` files up to 50 MB (drag-drop or one-click examples) |
-| **Parses** | Every node, every initializer, every shape — into a clean `Graph` |
-| **Lays out** | Topological 3D layout: depth on X, branches fan out on Z, size from log-params |
-| **Runs** | `onnxruntime-web` inference in a Web Worker, with *every intermediate tensor* returned |
+|                |                                                                                                                                                    |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Loads**      | `.onnx` files up to 50 MB (drag-drop or one-click examples)                                                                                        |
+| **Parses**     | Every node, every initializer, every shape — into a clean `Graph`                                                                                  |
+| **Lays out**   | Topological 3D layout: depth on X, branches fan out on Z, size from log-params                                                                     |
+| **Runs**       | `onnxruntime-web` inference in a Web Worker, with _every intermediate tensor_ returned                                                             |
 | **Visualises** | Layer blocks light up by activation magnitude. Neuron grids (instanced) above each block, colored magma. Glowing signal packet sweeps the network. |
-| **Zooms** | Three LOD tiers: far (blocks only) · mid (neuron grids) · near (one focused layer with clickable cubes) |
-| **Inspects** | Per-layer activation stats, per-neuron values, fused-op chains |
+| **Zooms**      | Three LOD tiers: far (blocks only) · mid (neuron grids) · near (one focused layer with clickable cubes)                                            |
+| **Inspects**   | Per-layer activation stats, per-neuron values, fused-op chains                                                                                     |
 
 Inputs auto-route by shape:
+
 - `1×1×28×28` → drawable canvas (MNIST)
 - `1×{1|3}×H×W` → image drop-zone with `unit / imagenet / centered / caffe BGR` normalize presets
 - anything else → raw JSON tensor textarea with shape validation
@@ -77,11 +78,11 @@ static CDN.
 Three small ONNX models ship in `public/examples/` and load with a
 single click from the sidebar:
 
-| Model | Input | Size | Notes |
-|---|---|---|---|
-| **MNIST CNN** | 1×1×28×28 | 26 KB | LeCun-style digit classifier. Draw on the canvas, see top-3 softmax. |
+| Model                | Input       | Size   | Notes                                                                                     |
+| -------------------- | ----------- | ------ | ----------------------------------------------------------------------------------------- |
+| **MNIST CNN**        | 1×1×28×28   | 26 KB  | LeCun-style digit classifier. Draw on the canvas, see top-3 softmax.                      |
 | **Super-Resolution** | 1×1×224×224 | 234 KB | Sub-pixel CNN, grayscale Y-channel input. Shows feature maps growing through the network. |
-| **SqueezeNet 1.0** | 1×3×224×224 | 4.7 MB | ImageNet classifier with fire modules. Exercises the layer-fusion + branch-lane layout. |
+| **SqueezeNet 1.0**   | 1×3×224×224 | 4.7 MB | ImageNet classifier with fire modules. Exercises the layer-fusion + branch-lane layout.   |
 
 Bring your own — drop any `.onnx` ≤ 50 MB. Convert from PyTorch:
 

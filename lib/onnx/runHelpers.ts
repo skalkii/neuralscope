@@ -36,6 +36,26 @@ function topKSoftmax(
   return top.slice(0, k);
 }
 
+/**
+ * Run one inference pass and write the results into the store.
+ *
+ * Pipeline (all main-thread cost is the worker RPC):
+ *   feed → worker.run() → outputs[]
+ *        → summarizeRun(graph, outputs) → GroupSummary[]
+ *        → store.setSummaries (stamps firingStartedAt → triggers sweep)
+ *        → top-3 softmax over graph.outputs[0] (ImageNet labels applied
+ *          when output length is 1000 or 1001)
+ *        → console.groupCollapsed per-layer summary table
+ *
+ * @param inputName Tensor name from `inferenceSession.inputNames` —
+ *                  use `useScopeStore.getState().inputNames[0]`.
+ * @param data      Float32 buffer in row-major order matching `dims`.
+ *                  Caller owns the buffer; it is transferred to the
+ *                  worker so do not reuse after calling.
+ * @param dims      NCHW (or whatever the model expects) shape.
+ * @returns         predictions + elapsed ms, or null if no graph is
+ *                  loaded.
+ */
 export async function runWithFeed(
   inputName: string,
   data: Float32Array,

@@ -12,6 +12,15 @@ export class LoadError extends Error {
   }
 }
 
+/**
+ * Validate, parse, and lay out an ONNX model, then write everything
+ * into the store. Sync (parse + Kahn topo + bounds are all fast on
+ * <50 MB models). On failure throws `LoadError`; callers should
+ * catch and route to `setLoadError`.
+ *
+ * @throws LoadError when bytes exceed `MAX_MODEL_BYTES` or `parseOnnxBytes`
+ *                   rejects the protobuf.
+ */
 export function loadOnnxFromBytes(bytes: Uint8Array, name: string): void {
   if (bytes.byteLength > MAX_MODEL_BYTES) {
     throw new LoadError(
