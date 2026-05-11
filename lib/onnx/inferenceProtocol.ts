@@ -23,7 +23,7 @@ export type WorkerRun = {
 export type WorkerExtractWeights = {
   kind: 'extract-weights';
   id: number;
-  layerInputs: string[];
+  tensorInputs: string[];
 };
 
 export type WorkerSwitchProvider = {

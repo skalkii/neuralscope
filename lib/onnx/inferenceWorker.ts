@@ -98,7 +98,7 @@ ctx.onmessage = async (e: MessageEvent<WorkerRequest>) => {
         post({ kind: 'extract-weights-ok', id: msg.id, weights: null });
         return;
       }
-      const w = extractWeightsFromModel(cachedModel, msg.layerInputs);
+      const w = extractWeightsFromModel(cachedModel, msg.tensorInputs);
       if (!w) {
         post({ kind: 'extract-weights-ok', id: msg.id, weights: null });
         return;

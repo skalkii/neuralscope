@@ -138,7 +138,7 @@ export async function runInference(
  * no matching initializer exists (activation-only ops like Relu, Add).
  */
 export async function extractWeights(
-  layerInputs: string[],
+  tensorInputs: string[],
 ): Promise<{ name: string; dims: number[]; data: Float32Array } | null> {
   if (!worker) return null;
   const w = getWorker();
@@ -146,7 +146,7 @@ export async function extractWeights(
   const promise = new Promise<WorkerResponse>((resolve, reject) => {
     pending.set(id, { resolve, reject });
   });
-  w.postMessage({ kind: 'extract-weights', id, layerInputs });
+  w.postMessage({ kind: 'extract-weights', id, tensorInputs });
   const msg = await promise;
   if (msg.kind !== 'extract-weights-ok') throw new Error('unexpected response');
   if (!msg.weights) return null;

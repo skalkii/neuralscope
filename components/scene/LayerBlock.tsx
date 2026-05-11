@@ -85,8 +85,13 @@ export function LayerBlock({ group, item }: Props) {
     if (!isCollapsed) selectLayer(group.id);
   };
 
+  // Pattern + color signaling for colorblind accessibility.
+  // ★ = selected, ◎ = near LOD, no prefix = far/mid.
+  const symbol = selected ? '★ ' : isNear ? '◎ ' : '';
   const labelText =
-    group.label.length > 28 ? group.label.slice(0, 26) + '…' : group.label;
+    group.label.length > 26
+      ? `${symbol}${group.label.slice(0, 24)}…`
+      : `${symbol}${group.label}`;
   const showGrid =
     summary && summary.values.length > 0 && (lod === 'mid' || lod === 'near');
   const gridCell = isNear ? NEURON_GRID.NEAR_CELL : NEURON_GRID.MID_CELL;
