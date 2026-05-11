@@ -5,6 +5,7 @@ import { useScopeStore } from '@/lib/store/useScopeStore';
 import { ModelLoader } from '@/components/panels/ModelLoader';
 import { ExampleModels } from '@/components/panels/ExampleModels';
 import { MnistInput } from '@/components/panels/MnistInput';
+import { HeroOverlay } from '@/components/panels/HeroOverlay';
 
 const Scene = dynamic(
   () => import('@/components/scene/Scene').then((m) => m.Scene),
@@ -85,12 +86,13 @@ export default function Home() {
         )}
 
         <p className="mt-auto text-[10px] text-zinc-600">
-          Phase 4 — activation viz + signal packet sweep
+          Phase 4 + beauty pass · idle hero & bloom
         </p>
       </aside>
 
       <main className="relative flex-1">
         <Scene />
+        <HeroOverlay />
       </main>
     </div>
   );

@@ -38,6 +38,12 @@ transformers. Not for 7B+ LLMs.
       input to output (easeOutCubic, 1.8 s) on every run
 - [x] Per-block emissive intensity tied to activation magnitude, fades in
       as the packet arrives then settles to a residual glow
+- [x] Beauty pass: bloom + vignette + SMAA via
+      `@react-three/postprocessing`, drei `<Stars>`, hemisphere + key +
+      magenta-rim + cyan-fill lighting, custom hero idle network that
+      shimmers + pulses with a looping signal packet before any model
+      loads, gradient hero title overlay, auto-orbit camera until the
+      first real model loads
 - [ ] Phase 5: LOD manager + semantic zoom + dedicated inspector for
       selected neurons/weights
 - [ ] Phase 4: activation visualization + signal packet animation

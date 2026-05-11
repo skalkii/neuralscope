@@ -1,29 +1,24 @@
 'use client';
 
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Grid, Bounds, useBounds } from '@react-three/drei';
+import {
+  OrbitControls,
+  Grid,
+  Bounds,
+  useBounds,
+  Stars,
+} from '@react-three/drei';
 import { Suspense, useEffect } from 'react';
 import { useScopeStore } from '@/lib/store/useScopeStore';
 import { LayerBlock } from './LayerBlock';
 import { SignalPacket } from './SignalPacket';
-
-function PlaceholderBlock() {
-  return (
-    <mesh position={[0, 0, 0]}>
-      <boxGeometry args={[2, 1.2, 1.2]} />
-      <meshStandardMaterial
-        color="#22d3ee"
-        emissive="#0e7490"
-        emissiveIntensity={0.6}
-      />
-    </mesh>
-  );
-}
+import { HeroNetwork } from './HeroNetwork';
+import { SceneEffects } from './SceneEffects';
 
 function Network() {
   const graph = useScopeStore((s) => s.graph);
   const layout = useScopeStore((s) => s.layout);
-  if (!graph || !layout) return <PlaceholderBlock />;
+  if (!graph || !layout) return <HeroNetwork />;
   return (
     <>
       {graph.groups.map((g) => {
@@ -46,32 +41,62 @@ function AutoFit() {
   return null;
 }
 
-function ClearSelectionOnBgClick() {
-  const selectLayer = useScopeStore((s) => s.selectLayer);
+function Lighting() {
   return (
-    <mesh
-      position={[0, -100, 0]}
-      onPointerMissed={() => selectLayer(null)}
-      visible={false}
-    >
-      <planeGeometry args={[1, 1]} />
-    </mesh>
+    <>
+      <ambientLight intensity={0.25} />
+      <hemisphereLight
+        color="#7dd3fc"
+        groundColor="#1e1b4b"
+        intensity={0.45}
+      />
+      <directionalLight
+        position={[10, 14, 6]}
+        intensity={0.9}
+        color="#dbeafe"
+      />
+      <pointLight
+        position={[-12, 6, -8]}
+        intensity={1.6}
+        color="#a78bfa"
+        distance={50}
+        decay={2}
+      />
+      <pointLight
+        position={[12, 4, 10]}
+        intensity={1.2}
+        color="#22d3ee"
+        distance={50}
+        decay={2}
+      />
+    </>
   );
 }
 
 export function Scene() {
+  const hasGraph = useScopeStore((s) => Boolean(s.graph));
+
   return (
     <Canvas
-      camera={{ position: [8, 6, 14], fov: 50, near: 0.1, far: 500 }}
+      camera={{ position: [10, 6, 16], fov: 50, near: 0.1, far: 500 }}
       dpr={[1, 2]}
-      gl={{ antialias: true, alpha: false }}
+      gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }}
       onPointerMissed={() => useScopeStore.getState().selectLayer(null)}
     >
-      <color attach="background" args={['#05060a']} />
-      <fog attach="fog" args={['#05060a', 40, 140]} />
+      <color attach="background" args={['#04050b']} />
+      <fog attach="fog" args={['#04050b', 50, 180]} />
 
-      <ambientLight intensity={0.35} />
-      <directionalLight position={[5, 10, 5]} intensity={0.8} />
+      <Lighting />
+
+      <Stars
+        radius={120}
+        depth={60}
+        count={2400}
+        factor={3}
+        saturation={0}
+        fade
+        speed={0.4}
+      />
 
       <Suspense fallback={null}>
         <Bounds margin={1.4}>
@@ -81,15 +106,20 @@ export function Scene() {
         </Bounds>
         <Grid
           position={[0, -2, 0]}
-          args={[80, 80]}
+          args={[120, 120]}
           cellColor="#1e293b"
-          sectionColor="#334155"
-          fadeDistance={120}
-          fadeStrength={1.5}
+          sectionColor="#475569"
+          cellSize={1}
+          sectionSize={5}
+          cellThickness={0.6}
+          sectionThickness={1.2}
+          fadeDistance={70}
+          fadeStrength={2}
           infiniteGrid
         />
-        <ClearSelectionOnBgClick />
       </Suspense>
+
+      <SceneEffects />
 
       <OrbitControls
         makeDefault
@@ -97,6 +127,8 @@ export function Scene() {
         dampingFactor={0.08}
         minDistance={2}
         maxDistance={200}
+        autoRotate={!hasGraph}
+        autoRotateSpeed={0.45}
       />
     </Canvas>
   );
