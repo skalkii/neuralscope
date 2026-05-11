@@ -13,6 +13,7 @@ export type InitInfo = {
   inputNames: string[];
   outputNames: string[];
   addedCount: number;
+  activeProvider: 'wasm' | 'webgpu';
 };
 
 export type RunResult = {
@@ -27,6 +28,7 @@ type WorkerResponseAny =
       inputNames: string[];
       outputNames: string[];
       addedCount: number;
+      activeProvider: 'wasm' | 'webgpu';
     }
   | {
       kind: 'run-ok';
@@ -69,20 +71,27 @@ function getWorker(): Worker {
   return worker;
 }
 
-export async function initInference(bytes: Uint8Array): Promise<InitInfo> {
+export async function initInference(
+  bytes: Uint8Array,
+  executionProvider: 'wasm' | 'webgpu' = 'wasm',
+): Promise<InitInfo> {
   const w = getWorker();
   const id = ++seq;
   const copy = bytes.slice().buffer;
   const promise = new Promise<WorkerResponseAny>((resolve, reject) => {
     pending.set(id, { resolve, reject });
   });
-  w.postMessage({ kind: 'init', id, modelBytes: copy }, [copy]);
+  w.postMessage(
+    { kind: 'init', id, modelBytes: copy, executionProvider },
+    [copy],
+  );
   const msg = await promise;
   if (msg.kind !== 'init-ok') throw new Error('unexpected response');
   return {
     inputNames: msg.inputNames,
     outputNames: msg.outputNames,
     addedCount: msg.addedCount,
+    activeProvider: msg.activeProvider,
   };
 }
 

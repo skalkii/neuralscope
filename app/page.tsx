@@ -7,6 +7,8 @@ import { ExampleModels } from '@/components/panels/ExampleModels';
 import { InputPanel } from '@/components/panels/InputPanel';
 import { HeroOverlay } from '@/components/panels/HeroOverlay';
 import { SessionManager } from '@/components/panels/SessionManager';
+import { EngineToggle } from '@/components/panels/EngineToggle';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const Scene = dynamic(
   () => import('@/components/scene/Scene').then((m) => m.Scene),
@@ -52,6 +54,8 @@ export default function Home() {
         <ExampleModels />
 
         <InputPanel />
+
+        <EngineToggle />
 
         <div className="rounded border border-zinc-800 p-2 text-[10px] font-mono text-zinc-400 flex items-center justify-between">
           <span>
@@ -152,12 +156,14 @@ export default function Home() {
         )}
 
         <p className="mt-auto text-[10px] text-zinc-600">
-          Phase 6 — input modality router + image / tensor inputs
+          Phase 7 — ImageNet labels · WebGPU toggle · error boundary
         </p>
       </aside>
 
       <main className="relative flex-1">
-        <Scene />
+        <ErrorBoundary>
+          <Scene />
+        </ErrorBoundary>
         <HeroOverlay />
         <SessionManager />
       </main>

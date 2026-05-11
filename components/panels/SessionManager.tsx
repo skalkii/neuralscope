@@ -9,6 +9,7 @@ import {
 
 export function SessionManager() {
   const modelBytes = useScopeStore((s) => s.modelBytes);
+  const executionProvider = useScopeStore((s) => s.executionProvider);
   const setSessionStatus = useScopeStore((s) => s.setSessionStatus);
 
   useEffect(() => {
@@ -20,15 +21,16 @@ export function SessionManager() {
     let cancelled = false;
     disposeInference();
     setSessionStatus('initializing');
-    initInference(modelBytes)
+    initInference(modelBytes, executionProvider)
       .then((info) => {
         if (cancelled) return;
         setSessionStatus('ready', {
           inputNames: info.inputNames,
           outputNames: info.outputNames,
+          activeProvider: info.activeProvider,
         });
         console.log(
-          `[NeuralScope] session ready · inputs=${info.inputNames.join(',')} · added ${info.addedCount} intermediate outputs`,
+          `[NeuralScope] session ready · provider=${info.activeProvider} · inputs=${info.inputNames.join(',')} · added ${info.addedCount} intermediate outputs`,
         );
       })
       .catch((e: unknown) => {
@@ -40,7 +42,7 @@ export function SessionManager() {
     return () => {
       cancelled = true;
     };
-  }, [modelBytes, setSessionStatus]);
+  }, [modelBytes, executionProvider, setSessionStatus]);
 
   return null;
 }

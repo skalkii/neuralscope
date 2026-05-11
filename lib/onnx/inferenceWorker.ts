@@ -14,7 +14,12 @@ let session: ort.InferenceSession | null = null;
 let inputNames: string[] = [];
 let outputNames: string[] = [];
 
-type InitReq = { kind: 'init'; id: number; modelBytes: ArrayBuffer };
+type InitReq = {
+  kind: 'init';
+  id: number;
+  modelBytes: ArrayBuffer;
+  executionProvider?: 'wasm' | 'webgpu';
+};
 type RunReq = {
   kind: 'run';
   id: number;
@@ -32,10 +37,28 @@ ctx.onmessage = async (e: MessageEvent<Req>) => {
     if (msg.kind === 'init') {
       const raw = new Uint8Array(msg.modelBytes);
       const { bytes, addedNames } = patchAllOutputs(raw);
-      session = await ort.InferenceSession.create(bytes, {
-        executionProviders: ['wasm'],
-        graphOptimizationLevel: 'all',
-      });
+      const preferred = msg.executionProvider ?? 'wasm';
+      const tryProviders: ('webgpu' | 'wasm')[] =
+        preferred === 'webgpu' ? ['webgpu', 'wasm'] : ['wasm'];
+      let active: 'webgpu' | 'wasm' = 'wasm';
+      let lastErr: Error | null = null;
+      for (const ep of tryProviders) {
+        try {
+          session = await ort.InferenceSession.create(bytes, {
+            executionProviders: [ep],
+            graphOptimizationLevel: 'all',
+          });
+          active = ep;
+          lastErr = null;
+          break;
+        } catch (e) {
+          lastErr = e as Error;
+          session = null;
+        }
+      }
+      if (!session) {
+        throw lastErr ?? new Error('session create failed');
+      }
       inputNames = [...session.inputNames];
       outputNames = [...session.outputNames];
       ctx.postMessage({
@@ -44,6 +67,7 @@ ctx.onmessage = async (e: MessageEvent<Req>) => {
         inputNames,
         outputNames,
         addedCount: addedNames.length,
+        activeProvider: active,
       });
     } else if (msg.kind === 'run') {
       if (!session) throw new Error('inference session not initialized');

@@ -216,9 +216,9 @@ detector`.
 
 A few other things to know:
 
-- **Predictions show class indices**, not labels. SqueezeNet's top-1
-  might be `285` — that's `Egyptian cat` if you cross-reference the
-  ImageNet 1k list.
+- **Predictions show class names for ImageNet models** (1 000 or 1 001
+  logits → bundled `imagenet-1k.json` lookup). Other classifiers still
+  show raw indices unless their output length matches.
 - **SqueezeNet 1.0** expects Caffe-BGR preprocessing — flip the
   normalize dropdown to `caffe BGR` for accurate predictions.
 - **Super-resolution** wants the Y channel of a YCbCr image and a
@@ -235,8 +235,12 @@ A few other things to know:
 
 ## Roadmap
 
-- [ ] WebGPU execution provider opt-in
-- [ ] Bundled ImageNet 1k class labels lookup
+- [x] WebGPU execution provider opt-in (Engine toggle, auto-falls-back
+      to WASM if init throws; sidebar shows `active:` provider with a
+      `fallback` chip when they diverge)
+- [x] Bundled ImageNet 1k class labels lookup (auto-applied when the
+      final output has 1 000 or 1 001 logits)
+- [x] React Error Boundary around the Canvas with retry button
 - [ ] GPT-2 BPE tokenizer for transformer text inputs
 - [ ] Dedicated attention view (heads × tokens)
 - [ ] Side-by-side comparison of two models on the same input

@@ -8,6 +8,7 @@ export type LodLevel = 'far' | 'mid' | 'near';
 export type LoadError = { message: string } | null;
 
 export type SessionStatus = 'idle' | 'initializing' | 'ready' | 'error';
+export type ExecutionProvider = 'wasm' | 'webgpu';
 
 export type ScopeState = {
   modelBytes: Uint8Array | null;
@@ -18,6 +19,8 @@ export type ScopeState = {
   loadError: LoadError;
   sessionStatus: SessionStatus;
   sessionError: string | null;
+  executionProvider: ExecutionProvider;
+  activeProvider: ExecutionProvider | null;
   inputNames: string[];
   outputNames: string[];
   summaries: GroupSummary[] | null;
@@ -40,8 +43,10 @@ export type ScopeState = {
       inputNames?: string[];
       outputNames?: string[];
       error?: string | null;
+      activeProvider?: ExecutionProvider | null;
     },
   ) => void;
+  setExecutionProvider: (provider: ExecutionProvider) => void;
   setSummaries: (summaries: GroupSummary[], elapsedMs: number) => void;
   setLodMap: (
     map: Record<string, LodLevel>,
@@ -62,6 +67,8 @@ export const useScopeStore = create<ScopeState>((set) => ({
   loadError: null,
   sessionStatus: 'idle',
   sessionError: null,
+  executionProvider: 'wasm',
+  activeProvider: null,
   inputNames: [],
   outputNames: [],
   summaries: null,
@@ -99,7 +106,9 @@ export const useScopeStore = create<ScopeState>((set) => ({
       sessionError: extras?.error ?? null,
       inputNames: extras?.inputNames ?? [],
       outputNames: extras?.outputNames ?? [],
+      activeProvider: extras?.activeProvider ?? null,
     }),
+  setExecutionProvider: (provider) => set({ executionProvider: provider }),
   setLodMap: (map, nearGroupId) => set({ lodByGroup: map, nearGroupId }),
   setSummaries: (summaries, elapsedMs) => {
     const byId: Record<string, GroupSummary> = {};
