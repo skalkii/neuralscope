@@ -38,10 +38,7 @@ export function NeuronGrid({
   const selectLayer = useScopeStore((s) => s.selectLayer);
 
   const count = Math.min(summary.values.length, MAX_INSTANCES);
-  const cols = useMemo(
-    () => Math.max(1, Math.ceil(Math.sqrt(count))),
-    [count],
-  );
+  const cols = useMemo(() => Math.max(1, Math.ceil(Math.sqrt(count))), [count]);
   const rows = useMemo(() => Math.ceil(count / cols), [count, cols]);
 
   const localMax = useMemo(() => {
@@ -78,11 +75,9 @@ export function NeuronGrid({
   const selectedPos =
     selectedNeuronIndex != null && selectedNeuronIndex < count
       ? {
-          x:
-            ((selectedNeuronIndex % cols) - (cols - 1) / 2) * spacing,
+          x: ((selectedNeuronIndex % cols) - (cols - 1) / 2) * spacing,
           y:
-            (Math.floor(selectedNeuronIndex / cols) - (rows - 1) / 2) *
-            spacing,
+            (Math.floor(selectedNeuronIndex / cols) - (rows - 1) / 2) * spacing,
         }
       : null;
 

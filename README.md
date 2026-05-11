@@ -267,7 +267,20 @@ lives in [ARCHITECTURE.md](./ARCHITECTURE.md).
 Before opening a PR, run:
 
 ```bash
-pnpm typecheck && pnpm test && pnpm build
+pnpm typecheck && pnpm test && pnpm format:check && pnpm build
+```
+
+End-to-end tests live in `e2e/` and run via Playwright:
+
+```bash
+pnpm test:e2e:install  # one-time chromium install
+pnpm test:e2e
+```
+
+Bundle analyzer:
+
+```bash
+pnpm analyze           # writes .next/analyze/*.html
 ```
 
 ---

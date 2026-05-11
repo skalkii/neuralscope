@@ -4,6 +4,7 @@ import * as ort from 'onnxruntime-web';
 import { onnx } from 'onnx-proto';
 import { patchAllOutputsOnModel } from './patchOutputs';
 import { extractWeightsFromModel } from './extractWeights';
+import type { WorkerRequest, WorkerResponse } from './inferenceProtocol';
 
 const ctx = self as unknown as DedicatedWorkerGlobalScope;
 
@@ -17,29 +18,15 @@ let cachedModel: onnx.ModelProto | null = null;
 let inputNames: string[] = [];
 let outputNames: string[] = [];
 
-type InitReq = {
-  kind: 'init';
-  id: number;
-  modelBytes: ArrayBuffer;
-  executionProvider?: 'wasm' | 'webgpu';
-};
-type RunReq = {
-  kind: 'run';
-  id: number;
-  feeds: Record<
-    string,
-    { data: ArrayBuffer; dims: number[]; dtype: 'float32' }
-  >;
-};
-type DisposeReq = { kind: 'dispose' };
-type ExtractWeightsReq = {
-  kind: 'extract-weights';
-  id: number;
-  layerInputs: string[];
-};
-type Req = InitReq | RunReq | DisposeReq | ExtractWeightsReq;
+function post(msg: WorkerResponse, transfer?: ArrayBuffer[]): void {
+  if (transfer && transfer.length > 0) {
+    ctx.postMessage(msg, transfer);
+  } else {
+    ctx.postMessage(msg);
+  }
+}
 
-ctx.onmessage = async (e: MessageEvent<Req>) => {
+ctx.onmessage = async (e: MessageEvent<WorkerRequest>) => {
   const msg = e.data;
   try {
     if (msg.kind === 'init') {
@@ -72,7 +59,7 @@ ctx.onmessage = async (e: MessageEvent<Req>) => {
       }
       inputNames = [...session.inputNames];
       outputNames = [...session.outputNames];
-      ctx.postMessage({
+      post({
         kind: 'init-ok',
         id: msg.id,
         inputNames,
@@ -105,33 +92,25 @@ ctx.onmessage = async (e: MessageEvent<Req>) => {
         transferables.push(buf);
         outputs[k] = { data: buf, dims: Array.from(t.dims), dtype: t.type };
       }
-      ctx.postMessage(
+      post(
         { kind: 'run-ok', id: msg.id, outputs, elapsed },
         transferables,
       );
     } else if (msg.kind === 'extract-weights') {
       if (!cachedModel) {
-        ctx.postMessage({
-          kind: 'extract-weights-ok',
-          id: msg.id,
-          weights: null,
-        });
+        post({ kind: 'extract-weights-ok', id: msg.id, weights: null });
         return;
       }
       const w = extractWeightsFromModel(cachedModel, msg.layerInputs);
       if (!w) {
-        ctx.postMessage({
-          kind: 'extract-weights-ok',
-          id: msg.id,
-          weights: null,
-        });
+        post({ kind: 'extract-weights-ok', id: msg.id, weights: null });
         return;
       }
       const buf = w.data.buffer.slice(
         w.data.byteOffset,
         w.data.byteOffset + w.data.byteLength,
       ) as ArrayBuffer;
-      ctx.postMessage(
+      post(
         {
           kind: 'extract-weights-ok',
           id: msg.id,
@@ -149,7 +128,7 @@ ctx.onmessage = async (e: MessageEvent<Req>) => {
       cachedModel = null;
     }
   } catch (err) {
-    ctx.postMessage({
+    post({
       kind: 'err',
       id: 'id' in msg ? msg.id : -1,
       message: (err as Error).message,

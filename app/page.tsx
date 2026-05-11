@@ -16,7 +16,7 @@ const Scene = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="flex-1 grid place-items-center text-zinc-500">
+      <div className="grid flex-1 place-items-center text-zinc-500">
         Loading 3D scene…
       </div>
     ),
@@ -30,7 +30,7 @@ export default function Home() {
   const lodByGroup = useScopeStore((s) => s.lodByGroup);
   const nearGroupId = useScopeStore((s) => s.nearGroupId);
   const selectedLod = selectedLayerId
-    ? lodByGroup[selectedLayerId] ?? 'far'
+    ? (lodByGroup[selectedLayerId] ?? 'far')
     : nearGroupId
       ? 'near'
       : 'far';
@@ -47,13 +47,13 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
-    <div className="flex flex-1 flex-col md:flex-row h-screen w-screen bg-black text-zinc-100">
+    <div className="flex h-screen w-screen flex-1 flex-col bg-black text-zinc-100 md:flex-row">
       <button
         type="button"
         onClick={() => setSidebarOpen((o) => !o)}
         aria-label={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
         aria-expanded={sidebarOpen}
-        className="md:hidden flex items-center justify-between border-b border-zinc-800 px-4 py-2 text-xs text-zinc-300"
+        className="flex items-center justify-between border-b border-zinc-800 px-4 py-2 text-xs text-zinc-300 md:hidden"
       >
         <span className="font-semibold">NeuralScope</span>
         <span className="font-mono text-zinc-500">
@@ -63,11 +63,11 @@ export default function Home() {
       <aside
         className={`${
           sidebarOpen ? 'flex' : 'hidden'
-        } md:flex w-full md:w-80 max-h-[60vh] md:max-h-none border-b md:border-b-0 md:border-r border-zinc-800 p-4 flex-col gap-4 overflow-y-auto`}
+        } max-h-[60vh] w-full flex-col gap-4 overflow-y-auto border-b border-zinc-800 p-4 md:flex md:max-h-none md:w-80 md:border-r md:border-b-0`}
       >
         <header>
           <h1 className="text-lg font-semibold tracking-tight">NeuralScope</h1>
-          <p className="text-[11px] text-zinc-500 leading-relaxed mt-1">
+          <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">
             Local 3D inspector for ONNX models.
           </p>
         </header>
@@ -80,12 +80,12 @@ export default function Home() {
 
         <EngineToggle />
 
-        <div className="rounded border border-zinc-800 p-2 text-[10px] font-mono text-zinc-400 flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-2 rounded border border-zinc-800 p-2 font-mono text-[10px] text-zinc-400">
           <span>
             LOD: <span className="text-zinc-200">{selectedLod}</span>
           </span>
           {nearGroupId && (
-            <span className="text-cyan-300 truncate" title={nearGroupId}>
+            <span className="truncate text-cyan-300" title={nearGroupId}>
               near: {nearGroupId.slice(0, 12)}
               {nearGroupId.length > 12 ? '…' : ''}
             </span>
@@ -94,7 +94,7 @@ export default function Home() {
             <button
               type="button"
               onClick={requestCameraFit}
-              className="ml-auto rounded border border-zinc-700 px-1.5 py-0.5 text-zinc-300 hover:bg-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+              className="ml-auto rounded border border-zinc-700 px-1.5 py-0.5 text-zinc-300 hover:bg-zinc-900 focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:outline-none"
               aria-label="Reframe camera to fit the whole network"
             >
               reframe
@@ -103,11 +103,11 @@ export default function Home() {
         </div>
 
         {selectedGroup && (
-          <section className="rounded border border-cyan-900 bg-cyan-950/20 p-3 text-[11px] flex flex-col gap-1">
-            <div className="font-mono text-cyan-300 break-all">
+          <section className="flex flex-col gap-1 rounded border border-cyan-900 bg-cyan-950/20 p-3 text-[11px]">
+            <div className="font-mono break-all text-cyan-300">
               {selectedGroup.label}
             </div>
-            <div className="text-zinc-400 break-all">
+            <div className="break-all text-zinc-400">
               id: <span className="text-zinc-200">{selectedGroup.id}</span>
             </div>
             <div className="text-zinc-400">
@@ -135,12 +135,12 @@ export default function Home() {
               </div>
             )}
             {selectedGroup.layers.length > 1 && (
-              <div className="text-zinc-500 mt-1">
+              <div className="mt-1 text-zinc-500">
                 fused: {selectedGroup.layers.map((l) => l.op).join(' → ')}
               </div>
             )}
             {selectedSummary && (
-              <div className="mt-2 pt-2 border-t border-zinc-800 text-zinc-400 flex flex-col gap-0.5">
+              <div className="mt-2 flex flex-col gap-0.5 border-t border-zinc-800 pt-2 text-zinc-400">
                 <div>
                   activation kind:{' '}
                   <span className="text-zinc-200">{selectedSummary.kind}</span>
@@ -176,9 +176,9 @@ export default function Home() {
                       <div>
                         value:{' '}
                         <span className="text-zinc-200">
-                          {selectedSummary.values[
-                            selectedNeuronIndex
-                          ].toFixed(4)}
+                          {selectedSummary.values[selectedNeuronIndex].toFixed(
+                            4,
+                          )}
                         </span>
                       </div>
                     </div>
@@ -186,7 +186,7 @@ export default function Home() {
               </div>
             )}
             {selectedLod === 'near' && selectedWeights !== undefined && (
-              <div className="mt-2 pt-2 border-t border-zinc-800 text-zinc-400 flex flex-col gap-0.5">
+              <div className="mt-2 flex flex-col gap-0.5 border-t border-zinc-800 pt-2 text-zinc-400">
                 {selectedWeights === 'missing' ? (
                   <div className="text-zinc-500">
                     no float-32 weight initializer found

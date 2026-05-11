@@ -1,3 +1,8 @@
+import type {
+  WorkerResponse,
+  ExecutionProviderName,
+} from './inferenceProtocol';
+
 export type TensorPayload = {
   data: Float32Array;
   dims: number[];
@@ -13,7 +18,7 @@ export type InitInfo = {
   inputNames: string[];
   outputNames: string[];
   addedCount: number;
-  activeProvider: 'wasm' | 'webgpu';
+  activeProvider: ExecutionProviderName;
 };
 
 export type RunResult = {
@@ -21,33 +26,8 @@ export type RunResult = {
   elapsedMs: number;
 };
 
-type WorkerResponseAny =
-  | {
-      kind: 'init-ok';
-      id: number;
-      inputNames: string[];
-      outputNames: string[];
-      addedCount: number;
-      activeProvider: 'wasm' | 'webgpu';
-    }
-  | {
-      kind: 'run-ok';
-      id: number;
-      outputs: Record<
-        string,
-        { data: ArrayBuffer; dims: number[]; dtype: string }
-      >;
-      elapsed: number;
-    }
-  | {
-      kind: 'extract-weights-ok';
-      id: number;
-      weights: { name: string; dims: number[]; data: ArrayBuffer } | null;
-    }
-  | { kind: 'err'; id: number; message: string };
-
 type Pending = {
-  resolve: (msg: WorkerResponseAny) => void;
+  resolve: (msg: WorkerResponse) => void;
   reject: (err: Error) => void;
 };
 
@@ -60,7 +40,7 @@ function getWorker(): Worker {
   worker = new Worker(new URL('./inferenceWorker.ts', import.meta.url), {
     type: 'module',
   });
-  worker.onmessage = (e: MessageEvent<WorkerResponseAny>) => {
+  worker.onmessage = (e: MessageEvent<WorkerResponse>) => {
     const msg = e.data;
     if (msg.id == null) return;
     const p = pending.get(msg.id);
@@ -78,12 +58,12 @@ function getWorker(): Worker {
 
 export async function initInference(
   bytes: Uint8Array,
-  executionProvider: 'wasm' | 'webgpu' = 'wasm',
+  executionProvider: ExecutionProviderName = 'wasm',
 ): Promise<InitInfo> {
   const w = getWorker();
   const id = ++seq;
   const copy = bytes.slice().buffer;
-  const promise = new Promise<WorkerResponseAny>((resolve, reject) => {
+  const promise = new Promise<WorkerResponse>((resolve, reject) => {
     pending.set(id, { resolve, reject });
   });
   w.postMessage(
@@ -118,7 +98,7 @@ export async function runInference(
     transferables.push(buf);
     payload[k] = { data: buf, dims: v.dims, dtype: 'float32' };
   }
-  const promise = new Promise<WorkerResponseAny>((resolve, reject) => {
+  const promise = new Promise<WorkerResponse>((resolve, reject) => {
     pending.set(id, { resolve, reject });
   });
   w.postMessage({ kind: 'run', id, feeds: payload }, transferables);
@@ -141,7 +121,7 @@ export async function extractWeights(
   if (!worker) return null;
   const w = getWorker();
   const id = ++seq;
-  const promise = new Promise<WorkerResponseAny>((resolve, reject) => {
+  const promise = new Promise<WorkerResponse>((resolve, reject) => {
     pending.set(id, { resolve, reject });
   });
   w.postMessage({ kind: 'extract-weights', id, layerInputs });

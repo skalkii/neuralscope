@@ -48,11 +48,7 @@ function Lighting() {
   return (
     <>
       <ambientLight intensity={0.25} />
-      <hemisphereLight
-        color="#7dd3fc"
-        groundColor="#1e1b4b"
-        intensity={0.45}
-      />
+      <hemisphereLight color="#7dd3fc" groundColor="#1e1b4b" intensity={0.45} />
       <directionalLight
         position={[10, 14, 6]}
         intensity={0.9}
@@ -95,7 +91,11 @@ export function Scene() {
     <Canvas
       camera={{ position: [10, 6, 16], fov: 50, near: 0.1, far: 500 }}
       dpr={[1, 2]}
-      gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }}
+      gl={{
+        antialias: false,
+        alpha: false,
+        powerPreference: 'high-performance',
+      }}
       onPointerMissed={() => useScopeStore.getState().selectLayer(null)}
       aria-label="Interactive 3D visualisation of the loaded neural network. Drag to orbit, scroll to zoom."
       role="img"

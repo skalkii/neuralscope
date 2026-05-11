@@ -42,3 +42,12 @@ next-env.d.ts
 
 # onnxruntime-web WASM artifacts (regenerated via scripts/copy-ort-wasm.mjs)
 /public/ort-wasm/
+
+# playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/blob-report/
+
+# bundle analyzer
+.next/analyze/
