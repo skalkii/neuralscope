@@ -5,6 +5,7 @@ import { OrbitControls, Grid, Bounds, useBounds } from '@react-three/drei';
 import { Suspense, useEffect } from 'react';
 import { useScopeStore } from '@/lib/store/useScopeStore';
 import { LayerBlock } from './LayerBlock';
+import { SignalPacket } from './SignalPacket';
 
 function PlaceholderBlock() {
   return (
@@ -76,6 +77,7 @@ export function Scene() {
         <Bounds margin={1.4}>
           <AutoFit />
           <Network />
+          <SignalPacket />
         </Bounds>
         <Grid
           position={[0, -2, 0]}

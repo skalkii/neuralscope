@@ -32,8 +32,14 @@ transformers. Not for 7B+ LLMs.
 - [x] Per-layer summaries (conv → per-channel mean-abs, dense → per-neuron,
       seq → per-feature, capped at 4096 values) stored in Zustand and logged
       to console
-- [ ] Phase 4: NeuronGrid InstancedMesh + activation color mapping +
-      animated signal packet
+- [x] `<NeuronGrid>` `InstancedMesh` over each layer block (≤4096 instances,
+      magma colormap, per-instance color from activation magnitude)
+- [x] `<SignalPacket>` animated sphere + trail + point-light sweeping from
+      input to output (easeOutCubic, 1.8 s) on every run
+- [x] Per-block emissive intensity tied to activation magnitude, fades in
+      as the packet arrives then settles to a residual glow
+- [ ] Phase 5: LOD manager + semantic zoom + dedicated inspector for
+      selected neurons/weights
 - [ ] Phase 4: activation visualization + signal packet animation
 - [ ] Phase 5: LOD manager + semantic zoom + inspector panel
 - [ ] Phase 6: transformer support + bloom polish

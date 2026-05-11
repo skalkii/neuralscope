@@ -22,6 +22,8 @@ export type ScopeState = {
   outputNames: string[];
   summaries: GroupSummary[] | null;
   summariesByGroup: Record<string, GroupSummary>;
+  globalMaxActivation: number;
+  firingStartedAt: number | null;
   lastRunMs: number | null;
   isInferring: boolean;
   selectedLayerId: string | null;
@@ -59,6 +61,8 @@ export const useScopeStore = create<ScopeState>((set) => ({
   outputNames: [],
   summaries: null,
   summariesByGroup: {},
+  globalMaxActivation: 1,
+  firingStartedAt: null,
   lastRunMs: null,
   isInferring: false,
   selectedLayerId: null,
@@ -76,6 +80,8 @@ export const useScopeStore = create<ScopeState>((set) => ({
       outputNames: [],
       summaries: null,
       summariesByGroup: {},
+      globalMaxActivation: 1,
+      firingStartedAt: null,
       lastRunMs: null,
     }),
   setGraph: (graph, layout, bounds) =>
@@ -90,8 +96,18 @@ export const useScopeStore = create<ScopeState>((set) => ({
     }),
   setSummaries: (summaries, elapsedMs) => {
     const byId: Record<string, GroupSummary> = {};
-    for (const s of summaries) byId[s.groupId] = s;
-    set({ summaries, summariesByGroup: byId, lastRunMs: elapsedMs });
+    let max = 0;
+    for (const s of summaries) {
+      byId[s.groupId] = s;
+      if (s.max > max) max = s.max;
+    }
+    set({
+      summaries,
+      summariesByGroup: byId,
+      globalMaxActivation: max > 0 ? max : 1,
+      firingStartedAt: performance.now(),
+      lastRunMs: elapsedMs,
+    });
   },
   clearModel: () =>
     set({
@@ -107,6 +123,8 @@ export const useScopeStore = create<ScopeState>((set) => ({
       outputNames: [],
       summaries: null,
       summariesByGroup: {},
+      globalMaxActivation: 1,
+      firingStartedAt: null,
       lastRunMs: null,
       selectedLayerId: null,
       selectedNeuronIndex: null,

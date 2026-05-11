@@ -85,7 +85,7 @@ export default function Home() {
         )}
 
         <p className="mt-auto text-[10px] text-zinc-600">
-          Phase 3 — inference + activation summaries (console)
+          Phase 4 — activation viz + signal packet sweep
         </p>
       </aside>
 
