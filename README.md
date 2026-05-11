@@ -226,8 +226,6 @@ A few other things to know:
   input, but the "prediction" is the upscaled image, not a label.
 - **No tokenizer is bundled**. Transformer-style `[1, seq_len]` inputs
   fall back to the JSON tensor textarea — you supply token IDs.
-- **No weight heatmaps yet**. Weight tensors are *parsed* into
-  `paramCount` but not loaded into the visualization. Coming later.
 - **No attention view yet**. Attention activations render as ordinary
   feature grids.
 
@@ -241,10 +239,13 @@ A few other things to know:
 - [x] Bundled ImageNet 1k class labels lookup (auto-applied when the
       final output has 1 000 or 1 001 logits)
 - [x] React Error Boundary around the Canvas with retry button
+- [x] Weight tensor heatmap on the near-LOD layer (lazy-decodes the
+      ONNX initializer for the selected group; renders a viridis
+      heatmap of up to 64×64 sampled cells with a "showing N×M of P×Q"
+      sub-sample chip when the tensor is bigger)
 - [ ] GPT-2 BPE tokenizer for transformer text inputs
 - [ ] Dedicated attention view (heads × tokens)
 - [ ] Side-by-side comparison of two models on the same input
-- [ ] Weight tensor heatmap on the near-LOD layer
 - [ ] dagre / d3-dag layout for very branchy graphs (U-Nets, GNNs)
 
 ---

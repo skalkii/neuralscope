@@ -1,12 +1,14 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Html } from '@react-three/drei';
 import { ThreeEvent, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useScopeStore } from '@/lib/store/useScopeStore';
 import { paletteFor, collapsedPalette } from '@/lib/onnx/opPalette';
+import { extractWeightsForLayer } from '@/lib/onnx/extractWeights';
 import { NeuronGrid } from './NeuronGrid';
+import { WeightHeatmap } from './WeightHeatmap';
 import type { LayerGroup, LayerLayoutItem } from '@/lib/onnx/types';
 
 const SWEEP_DURATION = 1.8;
@@ -20,6 +22,8 @@ export function LayerBlock({ group, item }: Props) {
   const summary = useScopeStore((s) => s.summariesByGroup[group.id]);
   const globalMax = useScopeStore((s) => s.globalMaxActivation);
   const lod = useScopeStore((s) => s.lodByGroup[group.id] ?? 'far');
+  const weights = useScopeStore((s) => s.weightsByGroup[group.id]);
+  const setWeightsForGroup = useScopeStore((s) => s.setWeightsForGroup);
 
   const isCollapsed = group.id === '__collapsed__';
   const palette = isCollapsed
@@ -29,6 +33,26 @@ export function LayerBlock({ group, item }: Props) {
 
   const matRef = useRef<THREE.MeshStandardMaterial>(null);
   const baseIntensity = selected ? 1.2 : 0.5;
+
+  const isNear = lod === 'near';
+  const shouldExtractWeights =
+    isNear && selected && !isCollapsed && weights == null;
+
+  useEffect(() => {
+    if (!shouldExtractWeights) return;
+    const bytes = useScopeStore.getState().modelBytes;
+    if (!bytes) return;
+    const inputs = group.primary.inputs;
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (cancelled) return;
+      const w = extractWeightsForLayer(bytes, inputs);
+      setWeightsForGroup(group.id, w ?? 'missing');
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [shouldExtractWeights, group.id, group.primary.inputs, setWeightsForGroup]);
 
   useFrame(() => {
     const mat = matRef.current;
@@ -85,7 +109,6 @@ export function LayerBlock({ group, item }: Props) {
     summary &&
     summary.values.length > 0 &&
     (lod === 'mid' || lod === 'near');
-  const isNear = lod === 'near';
   const gridCell = isNear ? 0.14 : 0.06;
   const gridSpacing = isNear ? 0.18 : 0.08;
   const gridOriginY = item.size.height / 2 + (isNear ? 1.1 : 0.7);
@@ -122,6 +145,16 @@ export function LayerBlock({ group, item }: Props) {
           interactive={isNear}
         />
       )}
+
+      {isNear &&
+        selected &&
+        weights &&
+        weights !== 'missing' && (
+          <WeightHeatmap
+            weights={weights}
+            originY={-(item.size.height / 2) - 0.8}
+          />
+        )}
 
       <Html
         distanceFactor={10}

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { Graph, LayerLayout } from '@/lib/onnx/types';
 import type { LayoutBounds } from '@/lib/layout/topologicalLayout';
 import type { GroupSummary } from '@/lib/onnx/summarize';
+import type { WeightTensor } from '@/lib/onnx/extractWeights';
 
 export type LodLevel = 'far' | 'mid' | 'near';
 
@@ -33,6 +34,7 @@ export type ScopeState = {
   selectedNeuronIndex: number | null;
   lodByGroup: Record<string, LodLevel>;
   nearGroupId: string | null;
+  weightsByGroup: Record<string, WeightTensor | 'missing'>;
 
   setModel: (bytes: Uint8Array, name: string) => void;
   setGraph: (graph: Graph, layout: LayerLayout, bounds: LayoutBounds) => void;
@@ -51,6 +53,10 @@ export type ScopeState = {
   setLodMap: (
     map: Record<string, LodLevel>,
     nearGroupId: string | null,
+  ) => void;
+  setWeightsForGroup: (
+    groupId: string,
+    weights: WeightTensor | 'missing',
   ) => void;
   clearModel: () => void;
   selectLayer: (id: string | null) => void;
@@ -81,6 +87,7 @@ export const useScopeStore = create<ScopeState>((set) => ({
   selectedNeuronIndex: null,
   lodByGroup: {},
   nearGroupId: null,
+  weightsByGroup: {},
 
   setModel: (bytes, name) =>
     set({
@@ -110,6 +117,10 @@ export const useScopeStore = create<ScopeState>((set) => ({
     }),
   setExecutionProvider: (provider) => set({ executionProvider: provider }),
   setLodMap: (map, nearGroupId) => set({ lodByGroup: map, nearGroupId }),
+  setWeightsForGroup: (groupId, weights) =>
+    set((s) => ({
+      weightsByGroup: { ...s.weightsByGroup, [groupId]: weights },
+    })),
   setSummaries: (summaries, elapsedMs) => {
     const byId: Record<string, GroupSummary> = {};
     let max = 0;
@@ -146,6 +157,7 @@ export const useScopeStore = create<ScopeState>((set) => ({
       selectedNeuronIndex: null,
       lodByGroup: {},
       nearGroupId: null,
+      weightsByGroup: {},
     }),
   selectLayer: (id) => set({ selectedLayerId: id, selectedNeuronIndex: null }),
   selectNeuron: (idx) => set({ selectedNeuronIndex: idx }),

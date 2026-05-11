@@ -38,6 +38,10 @@ export default function Home() {
   const selectedSummary = selectedLayerId
     ? summariesByGroup[selectedLayerId]
     : undefined;
+  const weightsByGroup = useScopeStore((s) => s.weightsByGroup);
+  const selectedWeights = selectedLayerId
+    ? weightsByGroup[selectedLayerId]
+    : undefined;
 
   return (
     <div className="flex flex-1 h-screen w-screen bg-black text-zinc-100">
@@ -152,11 +156,40 @@ export default function Home() {
                   )}
               </div>
             )}
+            {selectedLod === 'near' && selectedWeights !== undefined && (
+              <div className="mt-2 pt-2 border-t border-zinc-800 text-zinc-400 flex flex-col gap-0.5">
+                {selectedWeights === 'missing' ? (
+                  <div className="text-zinc-500">
+                    no float-32 weight initializer found
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-purple-300">weights:</div>
+                    <div className="break-all">
+                      <span className="text-zinc-200">
+                        {selectedWeights.name}
+                      </span>
+                    </div>
+                    <div>
+                      shape:{' '}
+                      <span className="text-zinc-200">
+                        [{selectedWeights.dims.join('×')}]
+                      </span>{' '}
+                      ·{' '}
+                      <span className="text-zinc-200">
+                        {selectedWeights.data.length.toLocaleString()}
+                      </span>{' '}
+                      values
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </section>
         )}
 
         <p className="mt-auto text-[10px] text-zinc-600">
-          Phase 7 — ImageNet labels · WebGPU toggle · error boundary
+          Phase 7 + weight heatmap on near-LOD layer
         </p>
       </aside>
 
