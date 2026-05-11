@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useScopeStore } from '@/lib/store/useScopeStore';
 import { ModelLoader } from '@/components/panels/ModelLoader';
 import { ExampleModels } from '@/components/panels/ExampleModels';
+import { MnistInput } from '@/components/panels/MnistInput';
 
 const Scene = dynamic(
   () => import('@/components/scene/Scene').then((m) => m.Scene),
@@ -36,6 +37,8 @@ export default function Home() {
         <ModelLoader />
 
         <ExampleModels />
+
+        <MnistInput />
 
         <div className="rounded border border-zinc-800 p-2 text-[10px] font-mono text-zinc-400">
           LOD: <span className="text-zinc-200">{globalLod}</span>
@@ -82,7 +85,7 @@ export default function Home() {
         )}
 
         <p className="mt-auto text-[10px] text-zinc-600">
-          Phase 2 — graph parse + static layout
+          Phase 3 — inference + activation summaries (console)
         </p>
       </aside>
 

@@ -8,7 +8,7 @@ Inference-only. Models never leave your machine. Targets small models
 (<50 MB, <~50M params): MNIST CNNs, tiny ResNets, nano-GPT class
 transformers. Not for 7B+ LLMs.
 
-## Status: Phase 2 — model loading & static layout
+## Status: Phase 3 — inference with intermediate activations
 
 - [x] Next.js 16 + React Three Fiber + Tailwind 4 + Zustand boilerplate
 - [x] R3F Canvas with OrbitControls, dark scene, grid, fog
@@ -23,7 +23,17 @@ transformers. Not for 7B+ LLMs.
 - [x] 500-logical-layer cap with head/middle-placeholder/tail collapse
 - [x] Bundled example models (MNIST CNN, Super-Resolution, SqueezeNet 1.0)
       with one-click load from sidebar
-- [ ] Phase 3: `onnxruntime-web` in Web Worker + intermediate activations
+- [x] `patchAllOutputs`: rewrites ONNX so every node output is also a graph
+      output → `session.run()` returns every intermediate tensor
+- [x] `onnxruntime-web` in Web Worker (transferable buffers, single-thread WASM)
+- [x] Local-served WASM at `/ort-wasm/` via postinstall + predev/prebuild copy
+- [x] MNIST drawable canvas (28×28 with feathered stamp) + Run button +
+      top-3 softmax predictions
+- [x] Per-layer summaries (conv → per-channel mean-abs, dense → per-neuron,
+      seq → per-feature, capped at 4096 values) stored in Zustand and logged
+      to console
+- [ ] Phase 4: NeuronGrid InstancedMesh + activation color mapping +
+      animated signal packet
 - [ ] Phase 4: activation visualization + signal packet animation
 - [ ] Phase 5: LOD manager + semantic zoom + inspector panel
 - [ ] Phase 6: transformer support + bloom polish
