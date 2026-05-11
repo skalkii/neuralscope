@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useScopeStore } from '@/lib/store/useScopeStore';
 import { runWithFeed, type Prediction } from '@/lib/onnx/runHelpers';
+import { PredictionList } from './PredictionList';
 
 const CELL_PX = 10;
 const GRID = 28;
@@ -162,29 +163,7 @@ export function MnistInput() {
       )}
 
       {predictions && (
-        <div className="flex flex-col gap-1 text-[11px] font-mono">
-          <div className="text-zinc-500">top-3:</div>
-          {predictions.map((p) => (
-            <div key={p.label} className="flex items-center gap-2">
-              <span className="text-zinc-200 w-4">{p.label}</span>
-              <div className="flex-1 h-1.5 bg-zinc-800 rounded overflow-hidden">
-                <div
-                  className="h-full bg-cyan-400"
-                  style={{ width: `${(p.score * 100).toFixed(0)}%` }}
-                />
-              </div>
-              <span className="text-zinc-400 w-12 text-right">
-                {(p.score * 100).toFixed(1)}%
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {lastRunMs != null && (
-        <div className="text-[10px] text-zinc-500 font-mono">
-          last run: {lastRunMs.toFixed(1)} ms
-        </div>
+        <PredictionList predictions={predictions} lastRunMs={lastRunMs} />
       )}
     </section>
   );

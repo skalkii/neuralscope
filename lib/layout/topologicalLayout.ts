@@ -1,8 +1,7 @@
 import type { Graph, LayerLayout } from '../onnx/types';
+import { LAYOUT } from '@/lib/config';
 
-const X_SPACING = 3.2;
-const Z_SPACING = 4;
-const BLOCK_WIDTH = 2;
+const { X_SPACING, Z_SPACING, BLOCK_WIDTH } = LAYOUT;
 
 export type LayoutBounds = {
   minX: number;

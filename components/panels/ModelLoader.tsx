@@ -2,11 +2,10 @@
 
 import { useCallback, useRef, useState } from 'react';
 import { useScopeStore } from '@/lib/store/useScopeStore';
-import {
-  loadOnnxFromBytes,
-  LoadError,
-  MAX_MODEL_BYTES,
-} from '@/lib/onnx/loadModel';
+import { loadOnnxFromBytes, LoadError } from '@/lib/onnx/loadModel';
+import { MODEL } from '@/lib/config';
+
+const MAX_MODEL_BYTES = MODEL.MAX_BYTES;
 
 export function ModelLoader() {
   const setLoadError = useScopeStore((s) => s.setLoadError);

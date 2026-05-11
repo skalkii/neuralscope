@@ -1,5 +1,6 @@
 import { onnx } from 'onnx-proto';
 import type { Graph, Layer, LayerGroup } from './types';
+import { MODEL } from '@/lib/config';
 
 const FUSE_INTO = new Set([
   'BatchNormalization',
@@ -13,9 +14,7 @@ const FUSE_INTO = new Set([
   'Tanh',
 ]);
 
-const MAX_LOGICAL_LAYERS = 500;
-const HEAD_KEEP = 100;
-const TAIL_KEEP = 100;
+const { MAX_LOGICAL_LAYERS, HEAD_KEEP, TAIL_KEEP } = MODEL;
 
 export class ParseError extends Error {
   constructor(message: string) {

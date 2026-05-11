@@ -4,8 +4,9 @@ import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useScopeStore } from '@/lib/store/useScopeStore';
+import { ANIMATION } from '@/lib/config';
 
-const DURATION = 1.8;
+const { SWEEP_DURATION_S: DURATION, PACKET_Y, PACKET_RADIUS } = ANIMATION;
 
 export function SignalPacket() {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -41,19 +42,19 @@ export function SignalPacket() {
 
     if (mesh) {
       mesh.visible = true;
-      mesh.position.set(x, 0.6, 0);
+      mesh.position.set(x, PACKET_Y, 0);
     }
     if (trail) {
       trail.visible = true;
       const trailLen = Math.max(0.4, 1.5 * (1 - t * 0.5));
-      trail.position.set(x - trailLen / 2, 0.6, 0);
+      trail.position.set(x - trailLen / 2, PACKET_Y, 0);
       trail.scale.set(trailLen, 0.18, 0.18);
     }
     if (light) {
       const peak = 4;
       const intensity = peak * Math.sin(Math.PI * t);
       light.intensity = Math.max(0, intensity);
-      light.position.set(x, 0.6, 0);
+      light.position.set(x, PACKET_Y, 0);
     }
   });
 
@@ -69,7 +70,7 @@ export function SignalPacket() {
         />
       </mesh>
       <mesh ref={meshRef} visible={false}>
-        <sphereGeometry args={[0.22, 16, 16]} />
+        <sphereGeometry args={[PACKET_RADIUS, 16, 16]} />
         <meshBasicMaterial color="#7dd3fc" toneMapped={false} />
       </mesh>
       <pointLight

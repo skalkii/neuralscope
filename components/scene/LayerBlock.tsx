@@ -10,9 +10,10 @@ import { extractWeightsForLayer } from '@/lib/onnx/extractWeights';
 import { NeuronGrid } from './NeuronGrid';
 import { WeightHeatmap } from './WeightHeatmap';
 import type { LayerGroup, LayerLayoutItem } from '@/lib/onnx/types';
+import { ANIMATION, NEURON_GRID } from '@/lib/config';
 
-const SWEEP_DURATION = 1.8;
-const FADE_WIDTH = 1.0;
+const SWEEP_DURATION = ANIMATION.SWEEP_DURATION_S;
+const FADE_WIDTH = ANIMATION.FADE_WIDTH;
 
 type Props = { group: LayerGroup; item: LayerLayoutItem };
 
@@ -109,8 +110,10 @@ export function LayerBlock({ group, item }: Props) {
     summary &&
     summary.values.length > 0 &&
     (lod === 'mid' || lod === 'near');
-  const gridCell = isNear ? 0.14 : 0.06;
-  const gridSpacing = isNear ? 0.18 : 0.08;
+  const gridCell = isNear ? NEURON_GRID.NEAR_CELL : NEURON_GRID.MID_CELL;
+  const gridSpacing = isNear
+    ? NEURON_GRID.NEAR_SPACING
+    : NEURON_GRID.MID_SPACING;
   const gridOriginY = item.size.height / 2 + (isNear ? 1.1 : 0.7);
   const labelOffset =
     item.size.height / 2 + (showGrid ? (isNear ? 3.2 : 1.6) : 0.4);

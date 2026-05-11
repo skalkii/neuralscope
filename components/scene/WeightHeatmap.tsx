@@ -5,13 +5,12 @@ import * as THREE from 'three';
 import { Html } from '@react-three/drei';
 import { viridis } from '@/lib/colormaps';
 import type { WeightTensor } from '@/lib/onnx/extractWeights';
+import { WEIGHT_HEATMAP } from '@/lib/config';
 
 const tmpObj = new THREE.Object3D();
 const tmpColor = new THREE.Color();
 
-const MAX_DIM = 64;
-const CELL = 0.08;
-const SPACING = 0.1;
+const { MAX_DIM, CELL, SPACING } = WEIGHT_HEATMAP;
 
 function sliceToMatrix(weights: WeightTensor): {
   rows: number;

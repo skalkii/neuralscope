@@ -1,8 +1,9 @@
 import { useScopeStore } from '@/lib/store/useScopeStore';
 import { parseOnnxBytes, ParseError } from './parseGraph';
 import { computeLayout } from '@/lib/layout/topologicalLayout';
+import { MODEL } from '@/lib/config';
 
-export const MAX_MODEL_BYTES = 50 * 1024 * 1024;
+export const MAX_MODEL_BYTES = MODEL.MAX_BYTES;
 
 export class LoadError extends Error {
   constructor(message: string) {

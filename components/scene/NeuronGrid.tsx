@@ -6,11 +6,12 @@ import { ThreeEvent } from '@react-three/fiber';
 import type { GroupSummary } from '@/lib/onnx/summarize';
 import { magma } from '@/lib/colormaps';
 import { useScopeStore } from '@/lib/store/useScopeStore';
+import { NEURON_GRID } from '@/lib/config';
 
 const tmpObj = new THREE.Object3D();
 const tmpColor = new THREE.Color();
 
-const MAX_INSTANCES = 4096;
+const { MAX_INSTANCES } = NEURON_GRID;
 
 type Props = {
   groupId: string;
@@ -25,8 +26,8 @@ export function NeuronGrid({
   groupId,
   summary,
   originY,
-  cellSize = 0.06,
-  spacing = 0.08,
+  cellSize = NEURON_GRID.MID_CELL,
+  spacing = NEURON_GRID.MID_SPACING,
   interactive = false,
 }: Props) {
   const meshRef = useRef<THREE.InstancedMesh>(null);

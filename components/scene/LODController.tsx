@@ -3,18 +3,20 @@
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useScopeStore, type LodLevel } from '@/lib/store/useScopeStore';
+import { LOD } from '@/lib/config';
 
-const FAR_THRESHOLD = 30;
-const MID_THRESHOLD = 8;
-const NEAR_HARD_MAX = 8;
+const { FAR_THRESHOLD, MID_THRESHOLD, NEAR_HARD_MAX, RECOMPUTE_EVERY_N_FRAMES } = LOD;
 
 export function LODController() {
   const prevRef = useRef<{
     map: Record<string, LodLevel>;
     near: string | null;
   }>({ map: {}, near: null });
+  const tickRef = useRef(0);
 
   useFrame(({ camera }) => {
+    tickRef.current = (tickRef.current + 1) % RECOMPUTE_EVERY_N_FRAMES;
+    if (tickRef.current !== 0) return;
     const { layout, setLodMap } = useScopeStore.getState();
     if (!layout || Object.keys(layout).length === 0) {
       if (

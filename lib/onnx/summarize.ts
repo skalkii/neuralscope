@@ -1,5 +1,6 @@
 import type { Graph } from './types';
 import type { TensorResult } from './inferenceClient';
+import { SUMMARY } from '@/lib/config';
 
 export type SummaryKind = 'dense' | 'conv' | 'seq' | 'scalar';
 
@@ -16,7 +17,7 @@ export type GroupSummary = {
   sparsity: number;
 };
 
-const MAX_VALUES = 4096;
+const { MAX_VALUES } = SUMMARY;
 
 function summarizeOne(
   dims: number[],
