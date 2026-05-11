@@ -38,42 +38,290 @@ Inputs auto-route by shape:
 
 ---
 
-## Quickstart
+## Run it locally
+
+### 1. Prerequisites
+
+| Tool        | Version        | Install                                                      |
+| ----------- | -------------- | ------------------------------------------------------------ |
+| **Node**    | 20+ (22 ideal) | <https://nodejs.org> or `nvm install 22`                     |
+| **pnpm**    | 9+             | `corepack enable && corepack prepare pnpm@latest --activate` |
+| **Git**     | any            | <https://git-scm.com>                                        |
+| **Browser** | WebGL2         | Chrome, Safari, Firefox, or Edge (all current versions)      |
+
+WebGPU is optional and detected at runtime — Chrome / Edge ship it,
+Safari has it behind a flag, Firefox doesn't yet. The app falls back
+to WASM automatically.
+
+### 2. Clone + install
 
 ```bash
 git clone https://github.com/skalkii/neuralscope.git
 cd neuralscope
 pnpm install
+```
+
+`pnpm install` triggers a postinstall hook (`scripts/copy-ort-wasm.mjs`)
+that copies `onnxruntime-web`'s WASM artefacts into
+`public/ort-wasm/` (74 MB, git-ignored). The hook is idempotent —
+re-running `pnpm install` skips files whose `size + mtime` already
+match.
+
+You should see, near the end of install output:
+
+```
+[copy-ort-wasm] 8 copied, 0 up-to-date → /…/public/ort-wasm
+```
+
+### 3. Dev server
+
+```bash
 pnpm dev
 ```
 
-Open <http://localhost:3000>.
+Expect `✓ Ready in ~350ms` and visit <http://localhost:3000>. The
+`predev` hook re-runs the WASM copy first.
 
-`pnpm install` runs a postinstall hook that copies the
-`onnxruntime-web` WASM artifacts into `public/ort-wasm/` (74 MB,
-git-ignored). Subsequent `pnpm dev` / `pnpm build` re-run the same
-copy via `predev` / `prebuild` so the WASM is always in place.
+### 4. Verify everything works before exploring
 
-### Requirements
+```bash
+pnpm typecheck       # tsc --noEmit
+pnpm test            # vitest, 16 unit tests
+pnpm format:check    # prettier --check
+```
 
-- Node **20+** (tested on 22)
-- pnpm **9+** (Corepack ships it)
-- A browser with **WebGL2** (Chrome, Safari, Firefox, Edge — all current versions)
+All three should be green. If any fails, file an issue.
 
-### Production build
+### 5. Production build (optional)
 
 ```bash
 pnpm build
 pnpm start
 ```
 
-The app is a pure static-friendly Next.js app — `next export` works
-once you're ready to host it on GitHub Pages, Cloudflare Pages, or any
-static CDN.
+Or for static hosting (GitHub Pages, Cloudflare Pages, S3+CloudFront):
+
+```bash
+pnpm build
+# .next/ contains the production bundle; deploy via your platform
+```
+
+Bundle composition:
+
+```bash
+pnpm analyze         # ANALYZE=true next build → .next/analyze/*.html
+```
 
 ---
 
-## Try it without your own model
+## Feature walk-through
+
+A scripted tour of every UI capability. Boot the dev server first
+(`pnpm dev` → <http://localhost:3000>).
+
+### A. Empty state (~5 s)
+
+On first load, with no model selected:
+
+- Big gradient `NeuralScope` title floats over the canvas
+- 6-block animated hero network shimmers, each block topped with a
+  small grid of magma-tinted cubes
+- A cyan signal packet loops left-to-right with a sine-pulsing
+  point-light
+- Camera auto-orbits
+
+**Action:** drag the canvas or scroll-zoom. Auto-rotate stops on
+the first pointer event. Title remains until a model loads.
+
+### B. Load a bundled model (~10 s)
+
+Sidebar → **Example models** → click **MNIST CNN**.
+
+- Button gets cyan border (active indicator)
+- Console (open DevTools) logs:
+  `[NeuralScope] session ready · provider=wasm · inputs=Input3 · added N intermediate outputs`
+- Hero scene replaced by the real model's layers
+- Camera reframes via drei's `<Bounds>`
+- Sidebar shows `8 layers · 12 nodes · 0.02 M params`
+- Auto-rotate stays off
+
+### C. Run inference on MNIST (~5 s)
+
+Sidebar → **Input · MNIST 28×28** → draw a digit on the 280×280 canvas
+(mouse / touch). Feathered stamp leaves grayscale falloff.
+
+Click **Run inference**:
+
+- Button briefly says `Running…`
+- Console expands a group:
+  `[NeuralScope] run 12.3ms · 8 layer summaries`
+  with one line per layer: `dims=[…] kind=conv mean|x|=0.42 max=2.1 sparsity=18.3%`
+- Cyan packet sweeps the network L→R over 1.8 s
+- Each layer block flares its emissive proportionally to that
+  layer's activation magnitude
+- Top-3 softmax bars appear under the canvas with class indices
+- `last run: 12.3 ms` chip beneath the bars
+
+Click **clear** to reset the canvas. Click **copy** on the
+predictions list to put a TSV onto the clipboard.
+
+### D. Image input (Super-Resolution) (~20 s)
+
+Sidebar → **Example models** → **Super-Resolution**.
+
+- Sidebar switches to `Input · grayscale 224×224`
+- Click the drop-zone or drag any JPG/PNG onto it
+- Preview shows the image **downscaled to 224×224 with
+  `image-rendering: pixelated`** — that's exactly what the model
+  sees, not the raw thumbnail
+- Caption: `model sees 224×224 grayscale`
+- Click **Run inference** → console summaries appear; no
+  predictions list (output is an image, not a classifier)
+
+### E. Image input with ImageNet labels (SqueezeNet) (~30 s)
+
+Sidebar → **SqueezeNet 1.0**.
+
+- Drop a cat / dog / car JPG into the drop-zone
+- Normalize dropdown defaults to `imagenet`. For accurate top-3
+  results on SqueezeNet 1.0 specifically, flip to **caffe BGR**
+  (the model's training preprocessing)
+- Click **Run inference**
+- Top-3 bars now show **class names** like `Egyptian cat`,
+  `tabby`, `tiger cat` instead of raw indices (auto-applied
+  when output length is 1000 or 1001)
+
+### F. Drag-drop your own `.onnx` (~10 s)
+
+Sidebar → **Drop .onnx here** drop-zone (top of sidebar).
+
+- Drag any `.onnx` file ≤ 50 MB
+- Or click the zone to open a file picker
+- Or focus the zone via `Tab` and press `Enter` / `Space` (keyboard accessible)
+- Wrong extension → red error chip
+- > 50 MB → red error with size delta
+- Parse failure → red chip + opset hint (`try opset_version=17`)
+
+PyTorch export snippet:
+
+```python
+import torch
+dummy = torch.randn(1, 3, 224, 224)
+torch.onnx.export(model, dummy, "model.onnx",
+                  input_names=["input"], output_names=["output"],
+                  opset_version=17)
+```
+
+### G. Tensor input (transformers, custom shapes) (~15 s)
+
+If your model's input shape doesn't match MNIST or a standard image
+(e.g. `[1, seq_len]` for transformers, audio buffers, etc.), the
+sidebar shows a JSON textarea.
+
+- Click **random** to fill with random floats
+- Click **zeros** for a baseline
+- Or paste a JSON array — exact length is validated against
+  `prod(dims)`
+- **Run inference** feeds the bytes to the worker as before
+
+### H. Semantic zoom (LOD) (~20 s)
+
+After loading any model and running inference once:
+
+- Scroll **out** far → blocks render as plain colored slabs, no
+  neuron grids (`LOD: far`)
+- Scroll **in** to mid distance → small neuron grids appear above
+  each block (`LOD: mid`)
+- Scroll **in** close to one specific block → that block's grid
+  enlarges 2×, its label turns cyan + gains a `◎` glyph
+  (`LOD: near`)
+- Sidebar LOD chip updates: `LOD: near · near: ConvLayerName`
+
+Only **one** block can be `near` at a time — the closest to the
+camera. Others fall to `mid`.
+
+### I. Per-neuron selection (~15 s)
+
+While a block is near-LOD:
+
+- Click any cube in its grid
+- Cube gets a **white wireframe outline** (color-blind safe;
+  doesn't overwrite the magma value)
+- Sidebar inspector shows `neuron N · value: 0.4218`
+- Click another cube to switch; click empty canvas to clear
+
+### J. Weight heatmap (~10 s)
+
+While a block is near-LOD AND selected (click the block first):
+
+- A **viridis heatmap** appears below the block
+- Conv weights laid out as `[OutC, InC·kH·kW]`; Gemm as `[in, out]`
+- Capped at 64×64 cells; chip says `showing N×M of P×Q` when
+  bigger
+- Sidebar inspector gains a `weights:` block with tensor name,
+  shape, value count
+- Activation-only ops (Relu, Add) show `no float-32 weight
+initializer found`
+
+### K. Reframe camera (~3 s)
+
+Sidebar LOD chip → **reframe** button.
+
+- Camera animates back to fit the entire network via drei
+  `<Bounds>`
+- Works at any LOD; useful after getting lost zoomed in
+
+### L. WebGPU toggle (~5 s)
+
+Sidebar → **Engine** card → click **WebGPU**.
+
+- Console: `[NeuralScope] provider switched · active=webgpu`
+- `active:` chip in the panel reads `webgpu`
+- If WebGPU init fails (unsupported / broken driver), chip
+  shows `active: wasm (fallback)` in amber
+- Toggle reuses the worker's cached `ModelProto` — no
+  protobuf decode round-trip on subsequent flips
+
+### M. Error boundary (~5 s)
+
+Force an error to see the boundary (DevTools console):
+
+```js
+useScopeStore.getState().setSummaries(null, NaN);
+```
+
+(or load a deliberately broken `.onnx`)
+
+- Red `Scene crashed` panel appears with the error message
+- Click **try again** → runtime state clears (summaries,
+  weights, selection) but the model + graph stay loaded
+- Scene remounts cleanly
+
+### N. Mobile layout (~10 s)
+
+Resize the browser narrower than 768 px wide.
+
+- Sidebar collapses behind a `NeuralScope hide ▴ / show ▾`
+  header bar
+- Click the bar to toggle
+- Canvas takes the full remaining height
+- All features work identically; the drop-zone, image picker,
+  and run buttons all meet WCAG 2.5.5 44×44 touch targets
+
+### O. Keyboard accessibility (~15 s)
+
+- `Tab` through the page — every interactive element gets a
+  cyan focus ring
+- Drop-zones (model + image) are reachable; `Enter` or `Space`
+  opens the file picker
+- Engine toggle buttons expose `aria-pressed`
+- Example-model buttons expose `aria-current="true"` when
+  active
+- Canvas has `aria-label` describing the visualization
+
+---
+
+## Bundled example models
 
 Three small ONNX models ship in `public/examples/` and load with a
 single click from the sidebar:
@@ -83,16 +331,6 @@ single click from the sidebar:
 | **MNIST CNN**        | 1×1×28×28   | 26 KB  | LeCun-style digit classifier. Draw on the canvas, see top-3 softmax.                      |
 | **Super-Resolution** | 1×1×224×224 | 234 KB | Sub-pixel CNN, grayscale Y-channel input. Shows feature maps growing through the network. |
 | **SqueezeNet 1.0**   | 1×3×224×224 | 4.7 MB | ImageNet classifier with fire modules. Exercises the layer-fusion + branch-lane layout.   |
-
-Bring your own — drop any `.onnx` ≤ 50 MB. Convert from PyTorch:
-
-```python
-import torch
-dummy = torch.randn(1, 3, 224, 224)
-torch.onnx.export(model, dummy, "model.onnx",
-                  input_names=["input"], output_names=["output"],
-                  opset_version=17)
-```
 
 ---
 
