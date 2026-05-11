@@ -2,20 +2,40 @@
 
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import { ThreeEvent } from '@react-three/fiber';
 import type { GroupSummary } from '@/lib/onnx/summarize';
 import { magma } from '@/lib/colormaps';
+import { useScopeStore } from '@/lib/store/useScopeStore';
 
 const tmpObj = new THREE.Object3D();
 const tmpColor = new THREE.Color();
 
-const CELL = 0.06;
-const SPACING = 0.08;
 const MAX_INSTANCES = 4096;
 
-type Props = { summary: GroupSummary; originY: number };
+type Props = {
+  groupId: string;
+  summary: GroupSummary;
+  originY: number;
+  cellSize?: number;
+  spacing?: number;
+  interactive?: boolean;
+};
 
-export function NeuronGrid({ summary, originY }: Props) {
+export function NeuronGrid({
+  groupId,
+  summary,
+  originY,
+  cellSize = 0.06,
+  spacing = 0.08,
+  interactive = false,
+}: Props) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
+  const selectedNeuronIndex = useScopeStore((s) =>
+    s.selectedLayerId === groupId ? s.selectedNeuronIndex : null,
+  );
+  const selectNeuron = useScopeStore((s) => s.selectNeuron);
+  const selectLayer = useScopeStore((s) => s.selectLayer);
+
   const count = Math.min(summary.values.length, MAX_INSTANCES);
   const cols = useMemo(
     () => Math.max(1, Math.ceil(Math.sqrt(count))),
@@ -37,22 +57,36 @@ export function NeuronGrid({ summary, originY }: Props) {
     for (let i = 0; i < count; i++) {
       const row = Math.floor(i / cols);
       const col = i % cols;
-      const x = (col - (cols - 1) / 2) * SPACING;
-      const y = (row - (rows - 1) / 2) * SPACING;
+      const x = (col - (cols - 1) / 2) * spacing;
+      const y = (row - (rows - 1) / 2) * spacing;
       tmpObj.position.set(x, y, 0);
       tmpObj.rotation.set(0, 0, 0);
-      tmpObj.scale.setScalar(CELL);
+      const scale = i === selectedNeuronIndex ? cellSize * 1.6 : cellSize;
+      tmpObj.scale.setScalar(scale);
       tmpObj.updateMatrix();
       mesh.setMatrixAt(i, tmpObj.matrix);
       const v = summary.values[i] / localMax;
       const [r, g, b] = magma(v);
-      tmpColor.setRGB(r, g, b);
+      if (i === selectedNeuronIndex) {
+        tmpColor.setRGB(1, 1, 1);
+      } else {
+        tmpColor.setRGB(r, g, b);
+      }
       mesh.setColorAt(i, tmpColor);
     }
     mesh.count = count;
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-  }, [count, cols, rows, localMax, summary]);
+  }, [count, cols, rows, localMax, summary, selectedNeuronIndex, cellSize, spacing]);
+
+  const handleClick = (e: ThreeEvent<MouseEvent>) => {
+    if (!interactive) return;
+    e.stopPropagation();
+    const idx = e.instanceId;
+    if (idx == null) return;
+    selectLayer(groupId);
+    selectNeuron(idx);
+  };
 
   return (
     <instancedMesh
@@ -64,6 +98,7 @@ export function NeuronGrid({ summary, originY }: Props) {
       ]}
       position={[0, originY, 0]}
       frustumCulled={false}
+      onClick={interactive ? handleClick : undefined}
     >
       <boxGeometry args={[1, 1, 1]} />
       <meshBasicMaterial toneMapped={false} />

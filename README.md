@@ -44,8 +44,16 @@ transformers. Not for 7B+ LLMs.
       shimmers + pulses with a looping signal packet before any model
       loads, gradient hero title overlay, auto-orbit camera until the
       first real model loads
-- [ ] Phase 5: LOD manager + semantic zoom + dedicated inspector for
-      selected neurons/weights
+- [x] LOD controller: per-frame camera-distance check, far (>30)
+      hides neuron grids, mid (8–30) shows small grids, near (≤8)
+      enlarges one group's grid and makes it click-pickable. Single
+      near group at a time (closest to camera).
+- [x] Per-neuron selection via click on near-LOD cubes; selected
+      neuron scales up + recolors white; sidebar inspector shows
+      activation kind / mean|x| / max / sparsity and the selected
+      neuron's value
+- [ ] Phase 6: image + text input panels, transformer attention view,
+      WebGPU toggle, bundled demo polish
 - [ ] Phase 4: activation visualization + signal packet animation
 - [ ] Phase 5: LOD manager + semantic zoom + inspector panel
 - [ ] Phase 6: transformer support + bloom polish

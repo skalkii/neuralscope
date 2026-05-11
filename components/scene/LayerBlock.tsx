@@ -19,6 +19,7 @@ export function LayerBlock({ group, item }: Props) {
   const selectLayer = useScopeStore((s) => s.selectLayer);
   const summary = useScopeStore((s) => s.summariesByGroup[group.id]);
   const globalMax = useScopeStore((s) => s.globalMaxActivation);
+  const lod = useScopeStore((s) => s.lodByGroup[group.id] ?? 'far');
 
   const isCollapsed = group.id === '__collapsed__';
   const palette = isCollapsed
@@ -50,7 +51,10 @@ export function LayerBlock({ group, item }: Props) {
               (packetX - (item.position.x - FADE_WIDTH)) / FADE_WIDTH,
             ),
           );
-          const overshoot = Math.max(0, packetX - (item.position.x + FADE_WIDTH));
+          const overshoot = Math.max(
+            0,
+            packetX - (item.position.x + FADE_WIDTH),
+          );
           const decay = Math.max(0, 1 - overshoot / (FADE_WIDTH * 4));
           const fade = arrival * decay;
           intensity = baseIntensity + 3.0 * fade * normalized;
@@ -77,8 +81,16 @@ export function LayerBlock({ group, item }: Props) {
     if (!isCollapsed) selectLayer(group.id);
   };
 
+  const showGrid =
+    summary &&
+    summary.values.length > 0 &&
+    (lod === 'mid' || lod === 'near');
+  const isNear = lod === 'near';
+  const gridCell = isNear ? 0.14 : 0.06;
+  const gridSpacing = isNear ? 0.18 : 0.08;
+  const gridOriginY = item.size.height / 2 + (isNear ? 1.1 : 0.7);
   const labelOffset =
-    item.size.height / 2 + (summary && summary.values.length > 0 ? 1.6 : 0.4);
+    item.size.height / 2 + (showGrid ? (isNear ? 3.2 : 1.6) : 0.4);
 
   return (
     <group position={[item.position.x, item.position.y, item.position.z]}>
@@ -100,10 +112,14 @@ export function LayerBlock({ group, item }: Props) {
         />
       </mesh>
 
-      {summary && summary.values.length > 0 && (
+      {showGrid && (
         <NeuronGrid
+          groupId={group.id}
           summary={summary}
-          originY={item.size.height / 2 + 0.7}
+          originY={gridOriginY}
+          cellSize={gridCell}
+          spacing={gridSpacing}
+          interactive={isNear}
         />
       )}
 
@@ -117,7 +133,9 @@ export function LayerBlock({ group, item }: Props) {
           className={`px-1.5 py-0.5 text-[10px] rounded whitespace-nowrap font-mono ${
             selected
               ? 'bg-cyan-400 text-black'
-              : 'bg-zinc-900/80 text-zinc-200 border border-zinc-700'
+              : isNear
+                ? 'bg-cyan-900/80 text-cyan-100 border border-cyan-700'
+                : 'bg-zinc-900/80 text-zinc-200 border border-zinc-700'
           }`}
         >
           {group.label}

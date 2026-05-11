@@ -14,6 +14,7 @@ import { LayerBlock } from './LayerBlock';
 import { SignalPacket } from './SignalPacket';
 import { HeroNetwork } from './HeroNetwork';
 import { SceneEffects } from './SceneEffects';
+import { LODController } from './LODController';
 
 function Network() {
   const graph = useScopeStore((s) => s.graph);
@@ -97,6 +98,8 @@ export function Scene() {
         fade
         speed={0.4}
       />
+
+      <LODController />
 
       <Suspense fallback={null}>
         <Bounds margin={1.4}>

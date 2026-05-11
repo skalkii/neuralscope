@@ -20,10 +20,21 @@ const Scene = dynamic(
 );
 
 export default function Home() {
-  const globalLod = useScopeStore((s) => s.globalLod);
   const graph = useScopeStore((s) => s.graph);
   const selectedLayerId = useScopeStore((s) => s.selectedLayerId);
   const selectedGroup = graph?.groups.find((g) => g.id === selectedLayerId);
+  const lodByGroup = useScopeStore((s) => s.lodByGroup);
+  const nearGroupId = useScopeStore((s) => s.nearGroupId);
+  const selectedLod = selectedLayerId
+    ? lodByGroup[selectedLayerId] ?? 'far'
+    : nearGroupId
+      ? 'near'
+      : 'far';
+  const selectedNeuronIndex = useScopeStore((s) => s.selectedNeuronIndex);
+  const summariesByGroup = useScopeStore((s) => s.summariesByGroup);
+  const selectedSummary = selectedLayerId
+    ? summariesByGroup[selectedLayerId]
+    : undefined;
 
   return (
     <div className="flex flex-1 h-screen w-screen bg-black text-zinc-100">
@@ -41,8 +52,16 @@ export default function Home() {
 
         <MnistInput />
 
-        <div className="rounded border border-zinc-800 p-2 text-[10px] font-mono text-zinc-400">
-          LOD: <span className="text-zinc-200">{globalLod}</span>
+        <div className="rounded border border-zinc-800 p-2 text-[10px] font-mono text-zinc-400 flex items-center justify-between">
+          <span>
+            LOD: <span className="text-zinc-200">{selectedLod}</span>
+          </span>
+          {nearGroupId && (
+            <span className="text-cyan-300">
+              near: {nearGroupId.slice(0, 12)}
+              {nearGroupId.length > 12 ? '…' : ''}
+            </span>
+          )}
         </div>
 
         {selectedGroup && (
@@ -82,11 +101,57 @@ export default function Home() {
                 fused: {selectedGroup.layers.map((l) => l.op).join(' → ')}
               </div>
             )}
+            {selectedSummary && (
+              <div className="mt-2 pt-2 border-t border-zinc-800 text-zinc-400 flex flex-col gap-0.5">
+                <div>
+                  activation kind:{' '}
+                  <span className="text-zinc-200">{selectedSummary.kind}</span>
+                </div>
+                <div>
+                  mean|x|:{' '}
+                  <span className="text-zinc-200">
+                    {selectedSummary.scalar.toFixed(4)}
+                  </span>
+                </div>
+                <div>
+                  max:{' '}
+                  <span className="text-zinc-200">
+                    {selectedSummary.max.toFixed(4)}
+                  </span>{' '}
+                  · sparsity{' '}
+                  <span className="text-zinc-200">
+                    {(selectedSummary.sparsity * 100).toFixed(1)}%
+                  </span>
+                </div>
+                <div>
+                  neurons shown:{' '}
+                  <span className="text-zinc-200">
+                    {selectedSummary.values.length}
+                  </span>
+                </div>
+                {selectedNeuronIndex != null &&
+                  selectedNeuronIndex < selectedSummary.values.length && (
+                    <div className="mt-1 rounded bg-zinc-900/60 p-1.5">
+                      <div className="text-cyan-300">
+                        neuron {selectedNeuronIndex}
+                      </div>
+                      <div>
+                        value:{' '}
+                        <span className="text-zinc-200">
+                          {selectedSummary.values[
+                            selectedNeuronIndex
+                          ].toFixed(4)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+              </div>
+            )}
           </section>
         )}
 
         <p className="mt-auto text-[10px] text-zinc-600">
-          Phase 4 + beauty pass · idle hero & bloom
+          Phase 5 — LOD + per-neuron selection
         </p>
       </aside>
 

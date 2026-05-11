@@ -28,7 +28,8 @@ export type ScopeState = {
   isInferring: boolean;
   selectedLayerId: string | null;
   selectedNeuronIndex: number | null;
-  globalLod: LodLevel;
+  lodByGroup: Record<string, LodLevel>;
+  nearGroupId: string | null;
 
   setModel: (bytes: Uint8Array, name: string) => void;
   setGraph: (graph: Graph, layout: LayerLayout, bounds: LayoutBounds) => void;
@@ -42,6 +43,10 @@ export type ScopeState = {
     },
   ) => void;
   setSummaries: (summaries: GroupSummary[], elapsedMs: number) => void;
+  setLodMap: (
+    map: Record<string, LodLevel>,
+    nearGroupId: string | null,
+  ) => void;
   clearModel: () => void;
   selectLayer: (id: string | null) => void;
   selectNeuron: (idx: number | null) => void;
@@ -67,7 +72,8 @@ export const useScopeStore = create<ScopeState>((set) => ({
   isInferring: false,
   selectedLayerId: null,
   selectedNeuronIndex: null,
-  globalLod: 'far',
+  lodByGroup: {},
+  nearGroupId: null,
 
   setModel: (bytes, name) =>
     set({
@@ -94,6 +100,7 @@ export const useScopeStore = create<ScopeState>((set) => ({
       inputNames: extras?.inputNames ?? [],
       outputNames: extras?.outputNames ?? [],
     }),
+  setLodMap: (map, nearGroupId) => set({ lodByGroup: map, nearGroupId }),
   setSummaries: (summaries, elapsedMs) => {
     const byId: Record<string, GroupSummary> = {};
     let max = 0;
@@ -128,6 +135,8 @@ export const useScopeStore = create<ScopeState>((set) => ({
       lastRunMs: null,
       selectedLayerId: null,
       selectedNeuronIndex: null,
+      lodByGroup: {},
+      nearGroupId: null,
     }),
   selectLayer: (id) => set({ selectedLayerId: id, selectedNeuronIndex: null }),
   selectNeuron: (idx) => set({ selectedNeuronIndex: idx }),
