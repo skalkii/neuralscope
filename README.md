@@ -8,6 +8,14 @@ ONNX neural networks. No backend. No uploads. The model never leaves
 your machine. Built for students and engineers who want to *see* what
 their model is doing instead of staring at loss curves.
 
+> **Screenshots / demo:** drop a GIF + still frames into a `docs/` folder
+> and link them here once the project is deployed. A live demo URL goes
+> in the GitHub repo `homepage` field too.
+
+[![CI](https://github.com/skalkii/neuralscope/actions/workflows/ci.yml/badge.svg)](https://github.com/skalkii/neuralscope/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fskalkii%2Fneuralscope)
+
 ---
 
 ## What it does
@@ -252,9 +260,15 @@ A few other things to know:
 
 ## Contributing
 
-Issues and pull requests welcome. Keep it tight — this is intentionally
-a small project, not a research platform. Run `pnpm exec tsc --noEmit`
-before opening a PR.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, style, commit
+conventions, and performance budgets. The full architecture overview
+lives in [ARCHITECTURE.md](./ARCHITECTURE.md).
+
+Before opening a PR, run:
+
+```bash
+pnpm typecheck && pnpm test && pnpm build
+```
 
 ---
 

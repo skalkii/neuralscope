@@ -1,7 +1,9 @@
 /// <reference lib="webworker" />
 
 import * as ort from 'onnxruntime-web';
-import { patchAllOutputs } from './patchOutputs';
+import { onnx } from 'onnx-proto';
+import { patchAllOutputsOnModel } from './patchOutputs';
+import { extractWeightsFromModel } from './extractWeights';
 
 const ctx = self as unknown as DedicatedWorkerGlobalScope;
 
@@ -11,6 +13,7 @@ ort.env.wasm.simd = true;
 ort.env.wasm.proxy = false;
 
 let session: ort.InferenceSession | null = null;
+let cachedModel: onnx.ModelProto | null = null;
 let inputNames: string[] = [];
 let outputNames: string[] = [];
 
@@ -29,14 +32,22 @@ type RunReq = {
   >;
 };
 type DisposeReq = { kind: 'dispose' };
-type Req = InitReq | RunReq | DisposeReq;
+type ExtractWeightsReq = {
+  kind: 'extract-weights';
+  id: number;
+  layerInputs: string[];
+};
+type Req = InitReq | RunReq | DisposeReq | ExtractWeightsReq;
 
 ctx.onmessage = async (e: MessageEvent<Req>) => {
   const msg = e.data;
   try {
     if (msg.kind === 'init') {
       const raw = new Uint8Array(msg.modelBytes);
-      const { bytes, addedNames } = patchAllOutputs(raw);
+      cachedModel = onnx.ModelProto.decode(raw);
+      const addedNames = patchAllOutputsOnModel(cachedModel);
+      const encoded = onnx.ModelProto.encode(cachedModel).finish();
+      const bytes = new Uint8Array(encoded);
       const preferred = msg.executionProvider ?? 'wasm';
       const tryProviders: ('webgpu' | 'wasm')[] =
         preferred === 'webgpu' ? ['webgpu', 'wasm'] : ['wasm'];
@@ -98,6 +109,36 @@ ctx.onmessage = async (e: MessageEvent<Req>) => {
         { kind: 'run-ok', id: msg.id, outputs, elapsed },
         transferables,
       );
+    } else if (msg.kind === 'extract-weights') {
+      if (!cachedModel) {
+        ctx.postMessage({
+          kind: 'extract-weights-ok',
+          id: msg.id,
+          weights: null,
+        });
+        return;
+      }
+      const w = extractWeightsFromModel(cachedModel, msg.layerInputs);
+      if (!w) {
+        ctx.postMessage({
+          kind: 'extract-weights-ok',
+          id: msg.id,
+          weights: null,
+        });
+        return;
+      }
+      const buf = w.data.buffer.slice(
+        w.data.byteOffset,
+        w.data.byteOffset + w.data.byteLength,
+      ) as ArrayBuffer;
+      ctx.postMessage(
+        {
+          kind: 'extract-weights-ok',
+          id: msg.id,
+          weights: { name: w.name, dims: w.dims, data: buf },
+        },
+        [buf],
+      );
     } else if (msg.kind === 'dispose') {
       try {
         await session?.release?.();
@@ -105,6 +146,7 @@ ctx.onmessage = async (e: MessageEvent<Req>) => {
         /* ignore */
       }
       session = null;
+      cachedModel = null;
     }
   } catch (err) {
     ctx.postMessage({

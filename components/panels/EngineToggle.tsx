@@ -30,10 +30,12 @@ export function EngineToggle() {
       <div className="text-[10px] uppercase tracking-wider text-zinc-500">
         Engine
       </div>
-      <div className="flex gap-1">
+      <div className="flex gap-1" role="group" aria-label="Inference engine">
         <button
+          type="button"
           onClick={() => choose('wasm')}
-          className={`flex-1 rounded px-2 py-1 text-[10px] font-mono border ${
+          aria-pressed={executionProvider === 'wasm'}
+          className={`flex-1 rounded px-2 py-1 text-[10px] font-mono border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
             executionProvider === 'wasm'
               ? 'border-cyan-500 bg-cyan-950/40 text-cyan-200'
               : 'border-zinc-700 text-zinc-400 hover:bg-zinc-900'
@@ -42,14 +44,16 @@ export function EngineToggle() {
           WASM
         </button>
         <button
+          type="button"
           onClick={() => choose('webgpu')}
           disabled={webgpuSupported === false}
+          aria-pressed={executionProvider === 'webgpu'}
           title={
             webgpuSupported === false
               ? 'navigator.gpu is undefined in this browser'
               : 'WebGPU (falls back to WASM if init fails)'
           }
-          className={`flex-1 rounded px-2 py-1 text-[10px] font-mono border ${
+          className={`flex-1 rounded px-2 py-1 text-[10px] font-mono border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
             executionProvider === 'webgpu'
               ? 'border-cyan-500 bg-cyan-950/40 text-cyan-200'
               : 'border-zinc-700 text-zinc-400 hover:bg-zinc-900'

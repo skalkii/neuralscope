@@ -77,9 +77,12 @@ export function ExampleModels() {
           return (
             <li key={m.file}>
               <button
+                type="button"
                 disabled={busy}
                 onClick={() => void load(m)}
-                className={`w-full text-left rounded border p-2 text-[11px] transition-colors ${
+                aria-current={active ? 'true' : undefined}
+                aria-label={`Load example model ${m.title}, ${m.input}`}
+                className={`w-full text-left rounded border p-2 text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
                   active
                     ? 'border-cyan-600 bg-cyan-950/30'
                     : 'border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900/40'

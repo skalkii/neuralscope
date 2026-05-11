@@ -35,6 +35,7 @@ export default function Home() {
       : 'far';
   const selectedNeuronIndex = useScopeStore((s) => s.selectedNeuronIndex);
   const summariesByGroup = useScopeStore((s) => s.summariesByGroup);
+  const requestCameraFit = useScopeStore((s) => s.requestCameraFit);
   const selectedSummary = selectedLayerId
     ? summariesByGroup[selectedLayerId]
     : undefined;
@@ -61,15 +62,25 @@ export default function Home() {
 
         <EngineToggle />
 
-        <div className="rounded border border-zinc-800 p-2 text-[10px] font-mono text-zinc-400 flex items-center justify-between">
+        <div className="rounded border border-zinc-800 p-2 text-[10px] font-mono text-zinc-400 flex items-center justify-between gap-2">
           <span>
             LOD: <span className="text-zinc-200">{selectedLod}</span>
           </span>
           {nearGroupId && (
-            <span className="text-cyan-300">
+            <span className="text-cyan-300 truncate" title={nearGroupId}>
               near: {nearGroupId.slice(0, 12)}
               {nearGroupId.length > 12 ? '…' : ''}
             </span>
+          )}
+          {graph && (
+            <button
+              type="button"
+              onClick={requestCameraFit}
+              className="ml-auto rounded border border-zinc-700 px-1.5 py-0.5 text-zinc-300 hover:bg-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+              aria-label="Reframe camera to fit the whole network"
+            >
+              reframe
+            </button>
           )}
         </div>
 

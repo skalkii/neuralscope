@@ -39,6 +39,11 @@ type WorkerResponseAny =
       >;
       elapsed: number;
     }
+  | {
+      kind: 'extract-weights-ok';
+      id: number;
+      weights: { name: string; dims: number[]; data: ArrayBuffer } | null;
+    }
   | { kind: 'err'; id: number; message: string };
 
 type Pending = {
@@ -128,6 +133,26 @@ export async function runInference(
     };
   }
   return { outputs, elapsedMs: msg.elapsed };
+}
+
+export async function extractWeights(
+  layerInputs: string[],
+): Promise<{ name: string; dims: number[]; data: Float32Array } | null> {
+  if (!worker) return null;
+  const w = getWorker();
+  const id = ++seq;
+  const promise = new Promise<WorkerResponseAny>((resolve, reject) => {
+    pending.set(id, { resolve, reject });
+  });
+  w.postMessage({ kind: 'extract-weights', id, layerInputs });
+  const msg = await promise;
+  if (msg.kind !== 'extract-weights-ok') throw new Error('unexpected response');
+  if (!msg.weights) return null;
+  return {
+    name: msg.weights.name,
+    dims: msg.weights.dims,
+    data: new Float32Array(msg.weights.data),
+  };
 }
 
 export function disposeInference(): void {

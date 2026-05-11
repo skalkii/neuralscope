@@ -15,6 +15,7 @@ import { SignalPacket } from './SignalPacket';
 import { HeroNetwork } from './HeroNetwork';
 import { SceneEffects } from './SceneEffects';
 import { LODController } from './LODController';
+import { BlockAnimator } from './BlockAnimator';
 
 function Network() {
   const graph = useScopeStore((s) => s.graph);
@@ -34,11 +35,12 @@ function Network() {
 function AutoFit() {
   const bounds = useBounds();
   const modelName = useScopeStore((s) => s.modelName);
+  const fitTrigger = useScopeStore((s) => s.fitTrigger);
   useEffect(() => {
     if (modelName) {
       bounds.refresh().clip().fit();
     }
-  }, [modelName, bounds]);
+  }, [modelName, fitTrigger, bounds]);
   return null;
 }
 
@@ -83,6 +85,8 @@ export function Scene() {
       dpr={[1, 2]}
       gl={{ antialias: false, alpha: false, powerPreference: 'high-performance' }}
       onPointerMissed={() => useScopeStore.getState().selectLayer(null)}
+      aria-label="Interactive 3D visualisation of the loaded neural network. Drag to orbit, scroll to zoom."
+      role="img"
     >
       <color attach="background" args={['#04050b']} />
       <fog attach="fog" args={['#04050b', 50, 180]} />
@@ -100,6 +104,7 @@ export function Scene() {
       />
 
       <LODController />
+      <BlockAnimator />
 
       <Suspense fallback={null}>
         <Bounds margin={1.4}>

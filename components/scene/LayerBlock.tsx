@@ -2,18 +2,19 @@
 
 import { useEffect, useRef } from 'react';
 import { Html } from '@react-three/drei';
-import { ThreeEvent, useFrame } from '@react-three/fiber';
+import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useScopeStore } from '@/lib/store/useScopeStore';
 import { paletteFor, collapsedPalette } from '@/lib/onnx/opPalette';
-import { extractWeightsForLayer } from '@/lib/onnx/extractWeights';
+import { extractWeights } from '@/lib/onnx/inferenceClient';
+import {
+  registerBlock,
+  unregisterBlock,
+} from '@/lib/scene/animationRegistry';
 import { NeuronGrid } from './NeuronGrid';
 import { WeightHeatmap } from './WeightHeatmap';
 import type { LayerGroup, LayerLayoutItem } from '@/lib/onnx/types';
-import { ANIMATION, NEURON_GRID } from '@/lib/config';
-
-const SWEEP_DURATION = ANIMATION.SWEEP_DURATION_S;
-const FADE_WIDTH = ANIMATION.FADE_WIDTH;
+import { NEURON_GRID } from '@/lib/config';
 
 type Props = { group: LayerGroup; item: LayerLayoutItem };
 
@@ -21,7 +22,6 @@ export function LayerBlock({ group, item }: Props) {
   const selectedId = useScopeStore((s) => s.selectedLayerId);
   const selectLayer = useScopeStore((s) => s.selectLayer);
   const summary = useScopeStore((s) => s.summariesByGroup[group.id]);
-  const globalMax = useScopeStore((s) => s.globalMaxActivation);
   const lod = useScopeStore((s) => s.lodByGroup[group.id] ?? 'far');
   const weights = useScopeStore((s) => s.weightsByGroup[group.id]);
   const setWeightsForGroup = useScopeStore((s) => s.setWeightsForGroup);
@@ -35,63 +35,40 @@ export function LayerBlock({ group, item }: Props) {
   const matRef = useRef<THREE.MeshStandardMaterial>(null);
   const baseIntensity = selected ? 1.2 : 0.5;
 
+  // Register / update / unregister in the central animation registry.
+  // BlockAnimator iterates this map once per frame instead of each
+  // block running its own useFrame.
+  useEffect(() => {
+    registerBlock(group.id, {
+      material: matRef,
+      x: item.position.x,
+      baseIntensity,
+      summary,
+    });
+    return () => unregisterBlock(group.id);
+  }, [group.id, item.position.x, baseIntensity, summary]);
+
   const isNear = lod === 'near';
   const shouldExtractWeights =
     isNear && selected && !isCollapsed && weights == null;
 
   useEffect(() => {
     if (!shouldExtractWeights) return;
-    const bytes = useScopeStore.getState().modelBytes;
-    if (!bytes) return;
     const inputs = group.primary.inputs;
     let cancelled = false;
-    Promise.resolve().then(() => {
-      if (cancelled) return;
-      const w = extractWeightsForLayer(bytes, inputs);
-      setWeightsForGroup(group.id, w ?? 'missing');
-    });
+    extractWeights(inputs)
+      .then((w) => {
+        if (cancelled) return;
+        setWeightsForGroup(group.id, w ?? 'missing');
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setWeightsForGroup(group.id, 'missing');
+      });
     return () => {
       cancelled = true;
     };
   }, [shouldExtractWeights, group.id, group.primary.inputs, setWeightsForGroup]);
-
-  useFrame(() => {
-    const mat = matRef.current;
-    if (!mat) return;
-    const { firingStartedAt, bounds } = useScopeStore.getState();
-    let intensity = baseIntensity;
-    if (summary) {
-      const normalized = Math.min(1, summary.scalar / globalMax);
-      if (bounds && firingStartedAt) {
-        const elapsed = (performance.now() - firingStartedAt) / 1000;
-        if (elapsed <= SWEEP_DURATION + 0.5) {
-          const t = Math.min(1, elapsed / SWEEP_DURATION);
-          const eased = 1 - Math.pow(1 - t, 3);
-          const packetX =
-            bounds.minX - 1 + eased * (bounds.maxX - bounds.minX + 2);
-          const arrival = Math.max(
-            0,
-            Math.min(
-              1,
-              (packetX - (item.position.x - FADE_WIDTH)) / FADE_WIDTH,
-            ),
-          );
-          const overshoot = Math.max(
-            0,
-            packetX - (item.position.x + FADE_WIDTH),
-          );
-          const decay = Math.max(0, 1 - overshoot / (FADE_WIDTH * 4));
-          const fade = arrival * decay;
-          intensity = baseIntensity + 3.0 * fade * normalized;
-        } else {
-          intensity = baseIntensity + 0.7 * normalized;
-        }
-      } else {
-        intensity = baseIntensity + 0.7 * normalized;
-      }
-    }
-    mat.emissiveIntensity = intensity;
-  });
 
   const handleOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
@@ -149,15 +126,12 @@ export function LayerBlock({ group, item }: Props) {
         />
       )}
 
-      {isNear &&
-        selected &&
-        weights &&
-        weights !== 'missing' && (
-          <WeightHeatmap
-            weights={weights}
-            originY={-(item.size.height / 2) - 0.8}
-          />
-        )}
+      {isNear && selected && weights && weights !== 'missing' && (
+        <WeightHeatmap
+          weights={weights}
+          originY={-(item.size.height / 2) - 0.8}
+        />
+      )}
 
       <Html
         distanceFactor={10}

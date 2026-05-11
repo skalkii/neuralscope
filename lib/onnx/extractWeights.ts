@@ -38,16 +38,10 @@ function decodeFloatTensor(
   return null;
 }
 
-export function extractWeightsForLayer(
-  modelBytes: Uint8Array,
+export function extractWeightsFromModel(
+  model: onnx.ModelProto,
   layerInputNames: string[],
 ): WeightTensor | null {
-  let model: onnx.ModelProto;
-  try {
-    model = onnx.ModelProto.decode(modelBytes);
-  } catch {
-    return null;
-  }
   const graph = model.graph;
   if (!graph) return null;
   const initByName = new Map<string, onnx.ITensorProto>();
@@ -63,4 +57,17 @@ export function extractWeightsForLayer(
     return { name, dims: decoded.dims, data: decoded.data };
   }
   return null;
+}
+
+export function extractWeightsForLayer(
+  modelBytes: Uint8Array,
+  layerInputNames: string[],
+): WeightTensor | null {
+  let model: onnx.ModelProto;
+  try {
+    model = onnx.ModelProto.decode(modelBytes);
+  } catch {
+    return null;
+  }
+  return extractWeightsFromModel(model, layerInputNames);
 }

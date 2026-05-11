@@ -35,6 +35,7 @@ export type ScopeState = {
   lodByGroup: Record<string, LodLevel>;
   nearGroupId: string | null;
   weightsByGroup: Record<string, WeightTensor | 'missing'>;
+  fitTrigger: number;
 
   setModel: (bytes: Uint8Array, name: string) => void;
   setGraph: (graph: Graph, layout: LayerLayout, bounds: LayoutBounds) => void;
@@ -58,6 +59,7 @@ export type ScopeState = {
     groupId: string,
     weights: WeightTensor | 'missing',
   ) => void;
+  requestCameraFit: () => void;
   clearModel: () => void;
   selectLayer: (id: string | null) => void;
   selectNeuron: (idx: number | null) => void;
@@ -88,6 +90,7 @@ export const useScopeStore = create<ScopeState>((set) => ({
   lodByGroup: {},
   nearGroupId: null,
   weightsByGroup: {},
+  fitTrigger: 0,
 
   setModel: (bytes, name) =>
     set({
@@ -121,6 +124,7 @@ export const useScopeStore = create<ScopeState>((set) => ({
     set((s) => ({
       weightsByGroup: { ...s.weightsByGroup, [groupId]: weights },
     })),
+  requestCameraFit: () => set((s) => ({ fitTrigger: s.fitTrigger + 1 })),
   setSummaries: (summaries, elapsedMs) => {
     const byId: Record<string, GroupSummary> = {};
     let max = 0;

@@ -3,7 +3,7 @@
 // Runs on postinstall so the binaries stay out of git but are present
 // before next dev / next build.
 
-import { mkdir, copyFile, readdir, access } from 'node:fs/promises';
+import { mkdir, copyFile, readdir, access, stat } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -35,12 +35,33 @@ async function main() {
   await mkdir(dst, { recursive: true });
   const entries = await readdir(src);
   let copied = 0;
+  let skipped = 0;
   for (const name of entries) {
     if (!PATTERN.test(name)) continue;
-    await copyFile(join(src, name), join(dst, name));
-    copied++;
+    const srcPath = join(src, name);
+    const dstPath = join(dst, name);
+    let needsCopy = true;
+    try {
+      const [sStat, dStat] = await Promise.all([
+        stat(srcPath),
+        stat(dstPath),
+      ]);
+      if (dStat.size === sStat.size && dStat.mtimeMs >= sStat.mtimeMs) {
+        needsCopy = false;
+      }
+    } catch {
+      needsCopy = true;
+    }
+    if (needsCopy) {
+      await copyFile(srcPath, dstPath);
+      copied++;
+    } else {
+      skipped++;
+    }
   }
-  console.log(`[copy-ort-wasm] copied ${copied} files → ${dst}`);
+  console.log(
+    `[copy-ort-wasm] ${copied} copied, ${skipped} up-to-date → ${dst}`,
+  );
 }
 
 main().catch((e) => {
