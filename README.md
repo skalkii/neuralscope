@@ -1,114 +1,258 @@
 # NeuralScope
 
-> Local-first, browser-based 3D inspector for small ONNX neural networks.
-> Drop a model, type/upload an input, watch inference happen layer by layer
-> with semantic zoom from "whole network" down to "individual activation."
+> Drop an `.onnx` file into your browser. Watch the network light up as
+> inference flows through it, layer by layer, neuron by neuron.
 
-Inference-only. Models never leave your machine. Targets small models
-(<50 MB, <~50M params): MNIST CNNs, tiny ResNets, nano-GPT class
-transformers. Not for 7B+ LLMs.
+NeuralScope is a **local-first, browser-based 3D inspector** for small
+ONNX neural networks. No backend. No uploads. The model never leaves
+your machine. Built for students and engineers who want to *see* what
+their model is doing instead of staring at loss curves.
 
-## Status: Phase 3 — inference with intermediate activations
+---
 
-- [x] Next.js 16 + React Three Fiber + Tailwind 4 + Zustand boilerplate
-- [x] R3F Canvas with OrbitControls, dark scene, grid, fog
-- [x] Sidebar shell showing model state from Zustand store
-- [x] Drag-drop `.onnx` loader (50 MB cap, .onnx ext check)
-- [x] ONNX protobuf parse via `onnx-proto` → `Graph` with `Layer` + `LayerGroup`
-- [x] Op fusion (Conv/Gemm/MatMul ← BN ← activation) into single block
-- [x] Topological 3D layout: X = depth, Z = branch lane, Y/Z size = log(params)/log(channels)
-- [x] Op-keyed color palette + clickable LayerBlock with floating label
-- [x] Auto-fit camera on model load via drei `<Bounds>`
-- [x] Selected-layer inspector card (id, params, shapes, fused ops)
-- [x] 500-logical-layer cap with head/middle-placeholder/tail collapse
-- [x] Bundled example models (MNIST CNN, Super-Resolution, SqueezeNet 1.0)
-      with one-click load from sidebar
-- [x] `patchAllOutputs`: rewrites ONNX so every node output is also a graph
-      output → `session.run()` returns every intermediate tensor
-- [x] `onnxruntime-web` in Web Worker (transferable buffers, single-thread WASM)
-- [x] Local-served WASM at `/ort-wasm/` via postinstall + predev/prebuild copy
-- [x] MNIST drawable canvas (28×28 with feathered stamp) + Run button +
-      top-3 softmax predictions
-- [x] Per-layer summaries (conv → per-channel mean-abs, dense → per-neuron,
-      seq → per-feature, capped at 4096 values) stored in Zustand and logged
-      to console
-- [x] `<NeuronGrid>` `InstancedMesh` over each layer block (≤4096 instances,
-      magma colormap, per-instance color from activation magnitude)
-- [x] `<SignalPacket>` animated sphere + trail + point-light sweeping from
-      input to output (easeOutCubic, 1.8 s) on every run
-- [x] Per-block emissive intensity tied to activation magnitude, fades in
-      as the packet arrives then settles to a residual glow
-- [x] Beauty pass: bloom + vignette + SMAA via
-      `@react-three/postprocessing`, drei `<Stars>`, hemisphere + key +
-      magenta-rim + cyan-fill lighting, custom hero idle network that
-      shimmers + pulses with a looping signal packet before any model
-      loads, gradient hero title overlay, auto-orbit camera until the
-      first real model loads
-- [x] LOD controller: per-frame camera-distance check, far (>30)
-      hides neuron grids, mid (8–30) shows small grids, near (≤8)
-      enlarges one group's grid and makes it click-pickable. Single
-      near group at a time (closest to camera).
-- [x] Per-neuron selection via click on near-LOD cubes; selected
-      neuron scales up + recolors white; sidebar inspector shows
-      activation kind / mean|x| / max / sparsity and the selected
-      neuron's value
-- [x] Input modality router: MNIST drawable canvas (1×1×28×28),
-      ImageInput drop-zone (1|3×H×W, four normalize presets:
-      unit / imagenet / centered / caffe BGR), TensorInput JSON
-      textarea fallback with shape validation + random/zero fill
-- [x] Shared session lifecycle in `SessionManager` (lifted out of
-      MnistInput) so inference initializes regardless of input UI;
-      shared `runWithFeed` helper for tensor → summarize → softmax
-- [ ] Phase 7: bundled-model polish + screenshots + WebGPU opt-in
-      + attention view for transformers
-- [ ] Phase 4: activation visualization + signal packet animation
-- [ ] Phase 5: LOD manager + semantic zoom + inspector panel
-- [ ] Phase 6: transformer support + bloom polish
-- [ ] Phase 7: bundled example models
+## What it does
 
-## Run locally
+| | |
+|---|---|
+| **Loads** | `.onnx` files up to 50 MB (drag-drop or one-click examples) |
+| **Parses** | Every node, every initializer, every shape — into a clean `Graph` |
+| **Lays out** | Topological 3D layout: depth on X, branches fan out on Z, size from log-params |
+| **Runs** | `onnxruntime-web` inference in a Web Worker, with *every intermediate tensor* returned |
+| **Visualises** | Layer blocks light up by activation magnitude. Neuron grids (instanced) above each block, colored magma. Glowing signal packet sweeps the network. |
+| **Zooms** | Three LOD tiers: far (blocks only) · mid (neuron grids) · near (one focused layer with clickable cubes) |
+| **Inspects** | Per-layer activation stats, per-neuron values, fused-op chains |
+
+Inputs auto-route by shape:
+- `1×1×28×28` → drawable canvas (MNIST)
+- `1×{1|3}×H×W` → image drop-zone with `unit / imagenet / centered / caffe BGR` normalize presets
+- anything else → raw JSON tensor textarea with shape validation
+
+---
+
+## Quickstart
 
 ```bash
+git clone https://github.com/skalkii/neuralscope.git
+cd neuralscope
 pnpm install
 pnpm dev
 ```
 
 Open <http://localhost:3000>.
 
-## Requirements
+`pnpm install` runs a postinstall hook that copies the
+`onnxruntime-web` WASM artifacts into `public/ort-wasm/` (74 MB,
+git-ignored). Subsequent `pnpm dev` / `pnpm build` re-run the same
+copy via `predev` / `prebuild` so the WASM is always in place.
 
-- Node 20+ (tested on 22)
-- A browser with WebGL2 (WebGPU optional, Chrome/Edge)
+### Requirements
+
+- Node **20+** (tested on 22)
+- pnpm **9+** (Corepack ships it)
+- A browser with **WebGL2** (Chrome, Safari, Firefox, Edge — all current versions)
+
+### Production build
+
+```bash
+pnpm build
+pnpm start
+```
+
+The app is a pure static-friendly Next.js app — `next export` works
+once you're ready to host it on GitHub Pages, Cloudflare Pages, or any
+static CDN.
+
+---
+
+## Try it without your own model
+
+Three small ONNX models ship in `public/examples/` and load with a
+single click from the sidebar:
+
+| Model | Input | Size | Notes |
+|---|---|---|---|
+| **MNIST CNN** | 1×1×28×28 | 26 KB | LeCun-style digit classifier. Draw on the canvas, see top-3 softmax. |
+| **Super-Resolution** | 1×1×224×224 | 234 KB | Sub-pixel CNN, grayscale Y-channel input. Shows feature maps growing through the network. |
+| **SqueezeNet 1.0** | 1×3×224×224 | 4.7 MB | ImageNet classifier with fire modules. Exercises the layer-fusion + branch-lane layout. |
+
+Bring your own — drop any `.onnx` ≤ 50 MB. Convert from PyTorch:
+
+```python
+import torch
+dummy = torch.randn(1, 3, 224, 224)
+torch.onnx.export(model, dummy, "model.onnx",
+                  input_names=["input"], output_names=["output"],
+                  opset_version=17)
+```
+
+---
+
+## How it works
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│                            Browser tab                                │
+│                                                                       │
+│  ModelLoader / ExampleModels                                          │
+│       │                                                               │
+│       ▼                                                               │
+│  parseOnnxBytes ──► Graph (layers, fused groups, shapes, params)     │
+│       │                                                               │
+│       ▼                                                               │
+│  computeLayout ──► 3D positions (Kahn topo depth + branch lanes)     │
+│       │                                                               │
+│       ▼                                                               │
+│  Zustand store ◄──── LODController (camera-distance, far/mid/near)   │
+│       │                                                               │
+│       ├──► R3F Scene                                                 │
+│       │     • LayerBlock (emissive ramps with activation)             │
+│       │     • NeuronGrid (InstancedMesh, magma colormap)              │
+│       │     • SignalPacket (animated sphere + light)                  │
+│       │     • Postprocessing (Bloom + Vignette + SMAA)                │
+│       │                                                               │
+│       └──► InputPanel (auto-routed by input shape)                    │
+│             • MnistInput · ImageInput · TensorInput                   │
+│                  │                                                    │
+│                  ▼                                                    │
+│         runWithFeed ──► inferenceClient ──► Web Worker               │
+│                                                  │                    │
+│                                  patchAllOutputs (every intermediate  │
+│                                  tensor added to graph.output)        │
+│                                                  │                    │
+│                                  ort.InferenceSession.run             │
+│                                                  │                    │
+│                              summarize ─► per-group summaries        │
+│                                                                       │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+The non-obvious trick: by default `onnxruntime-web` only returns the
+model's natural outputs. `lib/onnx/patchOutputs.ts` decodes the
+`ModelProto`, appends every node's output tensor to `graph.output`
+(re-using `value_info` entries when present), and re-encodes. After
+that, a single `session.run()` returns every intermediate — which is
+what makes the per-layer visualization possible at all.
+
+---
 
 ## Stack
 
-- Next.js 16 (app router) + TypeScript + Turbopack
-- React Three Fiber + drei + three.js
-- `onnxruntime-web` (Phase 3+)
-- `onnx` (npm) for graph parsing (Phase 2+)
-- Zustand
-- Tailwind CSS 4
+- **Next.js 16** (app router) + **TypeScript** + **Turbopack**
+- **React Three Fiber** + **drei** + **three.js** for the 3D scene
+- **@react-three/postprocessing** for bloom / vignette / SMAA
+- **onnxruntime-web 1.26** in a single-threaded WASM Web Worker
+- **onnx-proto** for protobuf graph parsing
+- **Zustand 5** for state
+- **Tailwind CSS 4**
+
+---
 
 ## Project layout
 
 ```
-app/                 Next.js app router
-components/scene/    R3F components (Scene, LayerBlock, NeuronGrid, …)
-components/panels/   HTML panels (ModelLoader, InputPanel, Inspector)
-lib/onnx/            graph parse, output patching, worker, summarise
-lib/layout/          topological 3D layout
-lib/store/           Zustand store
-public/ort-wasm/     ONNX Runtime WASM artifacts (added Phase 3)
-public/examples/     bundled demo ONNX models (added Phase 7)
+app/                  Next.js app router (page.tsx, layout.tsx, globals.css)
+components/scene/     R3F scene
+  Scene.tsx           Canvas, lights, stars, Bounds, OrbitControls, postprocessing
+  LayerBlock.tsx      Single layer's box + animated emissive + label
+  NeuronGrid.tsx      InstancedMesh of per-neuron cubes (magma colormap)
+  SignalPacket.tsx    Sphere + trail + point-light that sweeps on each run
+  LODController.tsx   Per-frame camera-distance → LOD per group
+  HeroNetwork.tsx     Animated idle-state network shown before any model loads
+  SceneEffects.tsx    EffectComposer (Bloom + Vignette + SMAA)
+components/panels/    Sidebar + canvas-overlay UI
+  ModelLoader.tsx     Drag-drop .onnx file picker
+  ExampleModels.tsx   One-click bundled models
+  InputPanel.tsx      Shape-aware router → Mnist / Image / Tensor
+  MnistInput.tsx      28×28 drawable canvas
+  ImageInput.tsx      Image drop-zone with normalize presets
+  TensorInput.tsx     JSON textarea + random/zero fill
+  SessionManager.tsx  Inference session lifecycle
+  HeroOverlay.tsx     Gradient title + hint chip on empty state
+lib/onnx/
+  parseGraph.ts       ONNX protobuf → Graph + LayerGroup fusion
+  patchOutputs.ts     Append every node-output to graph.output
+  inferenceWorker.ts  ort-web in a Web Worker
+  inferenceClient.ts  Main-thread RPC wrapper
+  summarize.ts        Tensor → per-channel / per-neuron mean-abs
+  imageToTensor.ts    File → Float32Array NCHW with normalize presets
+  runHelpers.ts       Shared run / summarize / softmax helper
+  loadModel.ts        Bytes-to-store orchestration
+  opPalette.ts        Op → color map
+  types.ts            Graph / Layer / LayerGroup / Layout types
+lib/layout/
+  topologicalLayout.ts  Kahn topo depth → 3D positions + bounds
+lib/store/
+  useScopeStore.ts    Zustand store
+lib/colormaps.ts      Magma + viridis 16-stop palettes
+scripts/
+  copy-ort-wasm.mjs   postinstall / predev / prebuild WASM copy
+public/examples/      Bundled demo .onnx models + manifest
+public/ort-wasm/      onnxruntime-web WASM artifacts (gitignored)
 ```
+
+---
+
+## Performance budget
+
+NeuralScope targets a mid-range laptop with integrated graphics at 60 fps:
+
+- `<InstancedMesh>` everywhere — under 100 draw calls per frame
+- **4 096 instances max** per neuron grid; larger layers stride-sample
+- **500 logical layers max** per graph; bigger graphs keep head 100 + collapsed middle + tail 100
+- Activation summaries reduce 4D tensors to per-channel scalars (length = channel count)
+- Inference runs in a Web Worker so the render thread stays smooth
+- WASM is single-threaded by default; SIMD is on
+- 50 MB model cap is enforced before parse
+
+---
 
 ## Honest limitations
 
-Raw activations are not "concepts." Neuron N lighting up does not mean
-"this is the cat detector." Real interpretability needs sparse
-autoencoders or circuit tracing; out of scope here. Labels say
-"neuron N," not "the X detector."
+Raw activations are **not concepts**. "Neuron 47 lit up" does not mean
+"this is the cat detector" — it's a polysemantic superposition of many
+features. Real interpretability needs sparse autoencoders or circuit
+tracing. NeuralScope labels things `neuron 47`, never `the cat
+detector`.
+
+A few other things to know:
+
+- **Predictions show class indices**, not labels. SqueezeNet's top-1
+  might be `285` — that's `Egyptian cat` if you cross-reference the
+  ImageNet 1k list.
+- **SqueezeNet 1.0** expects Caffe-BGR preprocessing — flip the
+  normalize dropdown to `caffe BGR` for accurate predictions.
+- **Super-resolution** wants the Y channel of a YCbCr image and a
+  specific spatial size; visualization still works on any grayscale
+  input, but the "prediction" is the upscaled image, not a label.
+- **No tokenizer is bundled**. Transformer-style `[1, seq_len]` inputs
+  fall back to the JSON tensor textarea — you supply token IDs.
+- **No weight heatmaps yet**. Weight tensors are *parsed* into
+  `paramCount` but not loaded into the visualization. Coming later.
+- **No attention view yet**. Attention activations render as ordinary
+  feature grids.
+
+---
+
+## Roadmap
+
+- [ ] WebGPU execution provider opt-in
+- [ ] Bundled ImageNet 1k class labels lookup
+- [ ] GPT-2 BPE tokenizer for transformer text inputs
+- [ ] Dedicated attention view (heads × tokens)
+- [ ] Side-by-side comparison of two models on the same input
+- [ ] Weight tensor heatmap on the near-LOD layer
+- [ ] dagre / d3-dag layout for very branchy graphs (U-Nets, GNNs)
+
+---
+
+## Contributing
+
+Issues and pull requests welcome. Keep it tight — this is intentionally
+a small project, not a research platform. Run `pnpm exec tsc --noEmit`
+before opening a PR.
+
+---
 
 ## License
 
-TBD.
+MIT. See [LICENSE](./LICENSE).
