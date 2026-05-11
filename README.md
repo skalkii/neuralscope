@@ -215,6 +215,39 @@ NeuralScope targets a mid-range laptop with integrated graphics at 60 fps:
 
 ---
 
+## Threat model
+
+NeuralScope is local-first by design. **The model file never leaves your
+machine** — there is no upload endpoint, no telemetry, no third-party
+fetch beyond the bundled `/labels/imagenet-1k.json` lookup and the
+`/ort-wasm/` artefacts copied from `node_modules` into `public/` at
+install time.
+
+What that gives you:
+
+- **No data exfiltration vector.** All inference, weight extraction, and
+  visualisation happens in your browser. A network sniff during a run
+  shows nothing leaving the origin.
+- **Hostile-ONNX resilience.** Parse errors are caught in
+  `parseGraph` (`ParseError`) and surfaced in the sidebar with an opset
+  hint. Worker faults bubble up through `inferenceClient.onerror`. The
+  React `<ErrorBoundary>` wraps the `<Scene>` so a runtime crash in
+  three.js or postprocessing doesn't take down the page; "try again"
+  clears runtime state without dropping the loaded model.
+- **Hard 50 MB cap** is enforced **before** the ONNX bytes hit the
+  protobuf decoder, limiting decode-bomb blast radius. The decoder also
+  caps at 500 logical layers; bigger graphs collapse the middle.
+- **No `eval`, no `Function`, no dynamic import from user input.** The
+  worker only ever processes ArrayBuffers; the ORT session is the only
+  thing that interprets the model.
+
+What it does **not** protect against:
+
+- A malicious ONNX file that _exploits a vulnerability inside ORT itself_
+  (out of our scope — we ship whatever `onnxruntime-web@1.26` ships).
+- WebGPU driver bugs when the WebGPU EP is enabled.
+- Extensions you've installed reading the page's DOM.
+
 ## Honest limitations
 
 Raw activations are **not concepts**. "Neuron 47 lit up" does not mean

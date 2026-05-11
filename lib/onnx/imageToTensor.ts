@@ -23,6 +23,23 @@ function getImageData(
   width: number,
   height: number,
 ): Uint8ClampedArray {
+  // Prefer OffscreenCanvas: no DOM attach, no layout cost, GPU-backed
+  // in Chromium/WebKit. Falls back to a plain HTMLCanvasElement when
+  // unsupported (older Safari, JSDOM, SSR).
+  if (typeof OffscreenCanvas !== 'undefined') {
+    try {
+      const oc = new OffscreenCanvas(width, height);
+      const octx = oc.getContext('2d');
+      if (octx) {
+        octx.fillStyle = '#000';
+        octx.fillRect(0, 0, width, height);
+        octx.drawImage(img, 0, 0, width, height);
+        return octx.getImageData(0, 0, width, height).data;
+      }
+    } catch {
+      /* fall through */
+    }
+  }
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;

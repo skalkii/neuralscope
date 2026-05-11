@@ -8,9 +8,6 @@ import type { WeightTensor } from '@/lib/onnx/extractWeights';
 import { WEIGHT_HEATMAP } from '@/lib/config';
 import { instancedMeshArgs } from '@/lib/scene/instancedMeshArgs';
 
-const tmpObj = new THREE.Object3D();
-const tmpColor = new THREE.Color();
-
 const { MAX_DIM, CELL, SPACING } = WEIGHT_HEATMAP;
 
 function sliceToMatrix(weights: WeightTensor): {
@@ -64,6 +61,8 @@ type Props = { weights: WeightTensor; originY: number };
 
 export function WeightHeatmap({ weights, originY }: Props) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
+  const tmpObjRef = useRef(new THREE.Object3D());
+  const tmpColorRef = useRef(new THREE.Color());
   const sliced = useMemo(() => sliceToMatrix(weights), [weights]);
   const { rows, cols, values, rowDim, colDim, sub } = sliced;
   const count = rows * cols;
@@ -80,6 +79,8 @@ export function WeightHeatmap({ weights, originY }: Props) {
   useEffect(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
+    const tmpObj = tmpObjRef.current;
+    const tmpColor = tmpColorRef.current;
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const idx = r * cols + c;

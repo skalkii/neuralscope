@@ -20,12 +20,11 @@ const SWEEP_PERIOD = 4.5;
 const NEURONS_PER_BLOCK = 49;
 const NEURON_COLS = 7;
 
-const tmpObj = new THREE.Object3D();
-const tmpColor = new THREE.Color();
-
 function HeroBlock({ index }: { index: number }) {
   const matRef = useRef<THREE.MeshStandardMaterial>(null);
   const gridRef = useRef<THREE.InstancedMesh>(null);
+  const tmpObjRef = useRef(new THREE.Object3D());
+  const tmpColorRef = useRef(new THREE.Color());
   const x = (index - (N_BLOCKS - 1) / 2) * SPACING;
   const palette = PALETTE[index % PALETTE.length];
   const heightMod = 0.85 + 0.35 * Math.sin(index * 1.7);
@@ -43,6 +42,8 @@ function HeroBlock({ index }: { index: number }) {
 
     const mesh = gridRef.current;
     if (mesh) {
+      const tmpObj = tmpObjRef.current;
+      const tmpColor = tmpColorRef.current;
       for (let i = 0; i < NEURONS_PER_BLOCK; i++) {
         const row = Math.floor(i / NEURON_COLS);
         const col = i % NEURON_COLS;

@@ -126,8 +126,15 @@ export function ModelLoader() {
       </div>
 
       {loadError && (
-        <div className="rounded border border-red-700 bg-red-950/40 p-2 text-[11px] text-red-200">
-          {loadError.message}
+        <div className="flex flex-col gap-1 rounded border border-red-700 bg-red-950/40 p-2 text-[11px] text-red-200">
+          <div>{loadError.message}</div>
+          {/decode ONNX protobuf|opset/i.test(loadError.message) && (
+            <div className="text-[10px] text-red-300/80">
+              Try re-exporting with <code>opset_version=17</code> (PyTorch) or{' '}
+              <code>opset=17</code> (tf2onnx). NeuralScope uses the
+              <code> onnxruntime-web</code> 1.26 op set.
+            </div>
+          )}
         </div>
       )}
 

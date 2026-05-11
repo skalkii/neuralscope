@@ -9,9 +9,6 @@ import { useScopeStore } from '@/lib/store/useScopeStore';
 import { NEURON_GRID } from '@/lib/config';
 import { instancedMeshArgs } from '@/lib/scene/instancedMeshArgs';
 
-const tmpObj = new THREE.Object3D();
-const tmpColor = new THREE.Color();
-
 const { MAX_INSTANCES } = NEURON_GRID;
 
 type Props = {
@@ -32,6 +29,8 @@ export function NeuronGrid({
   interactive = false,
 }: Props) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
+  const tmpObjRef = useRef(new THREE.Object3D());
+  const tmpColorRef = useRef(new THREE.Color());
   const selectedNeuronIndex = useScopeStore((s) =>
     s.selectedLayerId === groupId ? s.selectedNeuronIndex : null,
   );
@@ -53,6 +52,8 @@ export function NeuronGrid({
   useEffect(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
+    const tmpObj = tmpObjRef.current;
+    const tmpColor = tmpColorRef.current;
     for (let i = 0; i < count; i++) {
       const row = Math.floor(i / cols);
       const col = i % cols;
