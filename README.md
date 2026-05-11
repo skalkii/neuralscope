@@ -52,8 +52,15 @@ transformers. Not for 7B+ LLMs.
       neuron scales up + recolors white; sidebar inspector shows
       activation kind / mean|x| / max / sparsity and the selected
       neuron's value
-- [ ] Phase 6: image + text input panels, transformer attention view,
-      WebGPU toggle, bundled demo polish
+- [x] Input modality router: MNIST drawable canvas (1×1×28×28),
+      ImageInput drop-zone (1|3×H×W, four normalize presets:
+      unit / imagenet / centered / caffe BGR), TensorInput JSON
+      textarea fallback with shape validation + random/zero fill
+- [x] Shared session lifecycle in `SessionManager` (lifted out of
+      MnistInput) so inference initializes regardless of input UI;
+      shared `runWithFeed` helper for tensor → summarize → softmax
+- [ ] Phase 7: bundled-model polish + screenshots + WebGPU opt-in
+      + attention view for transformers
 - [ ] Phase 4: activation visualization + signal packet animation
 - [ ] Phase 5: LOD manager + semantic zoom + inspector panel
 - [ ] Phase 6: transformer support + bloom polish

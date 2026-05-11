@@ -4,8 +4,9 @@ import dynamic from 'next/dynamic';
 import { useScopeStore } from '@/lib/store/useScopeStore';
 import { ModelLoader } from '@/components/panels/ModelLoader';
 import { ExampleModels } from '@/components/panels/ExampleModels';
-import { MnistInput } from '@/components/panels/MnistInput';
+import { InputPanel } from '@/components/panels/InputPanel';
 import { HeroOverlay } from '@/components/panels/HeroOverlay';
+import { SessionManager } from '@/components/panels/SessionManager';
 
 const Scene = dynamic(
   () => import('@/components/scene/Scene').then((m) => m.Scene),
@@ -50,7 +51,7 @@ export default function Home() {
 
         <ExampleModels />
 
-        <MnistInput />
+        <InputPanel />
 
         <div className="rounded border border-zinc-800 p-2 text-[10px] font-mono text-zinc-400 flex items-center justify-between">
           <span>
@@ -151,13 +152,14 @@ export default function Home() {
         )}
 
         <p className="mt-auto text-[10px] text-zinc-600">
-          Phase 5 — LOD + per-neuron selection
+          Phase 6 — input modality router + image / tensor inputs
         </p>
       </aside>
 
       <main className="relative flex-1">
         <Scene />
         <HeroOverlay />
+        <SessionManager />
       </main>
     </div>
   );
