@@ -2,14 +2,13 @@
 
 import { useCallback, useRef, useState } from 'react';
 import { useScopeStore } from '@/lib/store/useScopeStore';
-import { parseOnnxBytes, ParseError } from '@/lib/onnx/parseGraph';
-import { computeLayout } from '@/lib/layout/topologicalLayout';
-
-const MAX_BYTES = 50 * 1024 * 1024;
+import {
+  loadOnnxFromBytes,
+  LoadError,
+  MAX_MODEL_BYTES,
+} from '@/lib/onnx/loadModel';
 
 export function ModelLoader() {
-  const setModel = useScopeStore((s) => s.setModel);
-  const setGraph = useScopeStore((s) => s.setGraph);
   const setLoadError = useScopeStore((s) => s.setLoadError);
   const clearModel = useScopeStore((s) => s.clearModel);
   const modelName = useScopeStore((s) => s.modelName);
@@ -27,7 +26,7 @@ export function ModelLoader() {
         setLoadError({ message: `Not an .onnx file: ${file.name}` });
         return;
       }
-      if (file.size > MAX_BYTES) {
+      if (file.size > MAX_MODEL_BYTES) {
         setLoadError({
           message: `File too large: ${(file.size / 1e6).toFixed(1)} MB > 50 MB limit`,
         });
@@ -36,19 +35,16 @@ export function ModelLoader() {
       setBusy(true);
       try {
         const buf = new Uint8Array(await file.arrayBuffer());
-        const parsed = parseOnnxBytes(buf, file.name);
-        const { layout, bounds } = computeLayout(parsed);
-        setModel(buf, file.name);
-        setGraph(parsed, layout, bounds);
+        loadOnnxFromBytes(buf, file.name);
       } catch (e) {
         const msg =
-          e instanceof ParseError ? e.message : (e as Error).message;
+          e instanceof LoadError ? e.message : (e as Error).message;
         setLoadError({ message: msg });
       } finally {
         setBusy(false);
       }
     },
-    [setModel, setGraph, setLoadError],
+    [setLoadError],
   );
 
   const onDrop = useCallback(

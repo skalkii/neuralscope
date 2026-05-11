@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useScopeStore } from '@/lib/store/useScopeStore';
 import { ModelLoader } from '@/components/panels/ModelLoader';
+import { ExampleModels } from '@/components/panels/ExampleModels';
 
 const Scene = dynamic(
   () => import('@/components/scene/Scene').then((m) => m.Scene),
@@ -33,6 +34,8 @@ export default function Home() {
         </header>
 
         <ModelLoader />
+
+        <ExampleModels />
 
         <div className="rounded border border-zinc-800 p-2 text-[10px] font-mono text-zinc-400">
           LOD: <span className="text-zinc-200">{globalLod}</span>

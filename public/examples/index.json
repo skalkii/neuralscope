@@ -1,0 +1,28 @@
+{
+  "models": [
+    {
+      "file": "mnist-12.onnx",
+      "title": "MNIST CNN",
+      "description": "LeCun-style digit classifier. Tiny CNN over a 28×28 grayscale digit.",
+      "input": "1×1×28×28 (NCHW float)",
+      "sizeBytes": 26143,
+      "source": "onnx/models — validated/vision/classification/mnist"
+    },
+    {
+      "file": "super-resolution-10.onnx",
+      "title": "Super-Resolution",
+      "description": "Sub-pixel CNN that 3× upsamples a low-res Y-channel image. Good for showing growing feature maps.",
+      "input": "1×1×224×224 (NCHW float)",
+      "sizeBytes": 240078,
+      "source": "onnx/models — validated/vision/super_resolution/sub_pixel_cnn_2016"
+    },
+    {
+      "file": "squeezenet1.0-7.onnx",
+      "title": "SqueezeNet 1.0",
+      "description": "Compact ImageNet classifier with fire modules. Deeper, branchy graph — exercises the fusion + lane layout.",
+      "input": "1×3×224×224 (NCHW float)",
+      "sizeBytes": 4952222,
+      "source": "onnx/models — validated/vision/classification/squeezenet"
+    }
+  ]
+}

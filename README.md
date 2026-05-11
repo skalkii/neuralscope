@@ -21,6 +21,8 @@ transformers. Not for 7B+ LLMs.
 - [x] Auto-fit camera on model load via drei `<Bounds>`
 - [x] Selected-layer inspector card (id, params, shapes, fused ops)
 - [x] 500-logical-layer cap with head/middle-placeholder/tail collapse
+- [x] Bundled example models (MNIST CNN, Super-Resolution, SqueezeNet 1.0)
+      with one-click load from sidebar
 - [ ] Phase 3: `onnxruntime-web` in Web Worker + intermediate activations
 - [ ] Phase 4: activation visualization + signal packet animation
 - [ ] Phase 5: LOD manager + semantic zoom + inspector panel
