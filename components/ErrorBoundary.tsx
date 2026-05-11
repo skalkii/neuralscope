@@ -1,6 +1,7 @@
 'use client';
 
 import { Component, type ReactNode } from 'react';
+import { useScopeStore } from '@/lib/store/useScopeStore';
 
 type Props = { children: ReactNode; fallback?: (error: Error) => ReactNode };
 type State = { error: Error | null };
@@ -16,7 +17,21 @@ export class ErrorBoundary extends Component<Props, State> {
     console.error('[NeuralScope] ErrorBoundary caught:', error, info);
   }
 
-  reset = () => this.setState({ error: null });
+  reset = () => {
+    // Wipe runtime state (summaries, weights, selection, packet) so the
+    // remounted Scene doesn't inherit ghost layers from before the crash.
+    // Keep the loaded model + graph so the user can retry without re-loading.
+    useScopeStore.setState({
+      summaries: null,
+      summariesByGroup: {},
+      firingStartedAt: null,
+      lastRunMs: null,
+      selectedLayerId: null,
+      selectedNeuronIndex: null,
+      weightsByGroup: {},
+    });
+    this.setState({ error: null });
+  };
 
   render() {
     if (this.state.error) {

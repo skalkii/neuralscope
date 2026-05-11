@@ -83,6 +83,8 @@ export function LayerBlock({ group, item }: Props) {
     if (!isCollapsed) selectLayer(group.id);
   };
 
+  const labelText =
+    group.label.length > 28 ? group.label.slice(0, 26) + '…' : group.label;
   const showGrid =
     summary &&
     summary.values.length > 0 &&
@@ -148,7 +150,7 @@ export function LayerBlock({ group, item }: Props) {
                 : 'bg-zinc-900/80 text-zinc-200 border border-zinc-700'
           }`}
         >
-          {group.label}
+          {labelText}
         </div>
       </Html>
     </group>

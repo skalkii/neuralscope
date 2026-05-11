@@ -46,10 +46,7 @@ export type WorkerInitOk = {
 export type WorkerRunOk = {
   kind: 'run-ok';
   id: number;
-  outputs: Record<
-    string,
-    { data: ArrayBuffer; dims: number[]; dtype: string }
-  >;
+  outputs: Record<string, { data: ArrayBuffer; dims: number[]; dtype: string }>;
   elapsed: number;
 };
 

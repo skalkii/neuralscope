@@ -106,10 +106,10 @@ export function Scene() {
       <Lighting />
 
       <Stars
-        radius={120}
-        depth={60}
-        count={2400}
-        factor={3}
+        radius={220}
+        depth={80}
+        count={1500}
+        factor={5}
         saturation={0}
         fade
         speed={0.4}

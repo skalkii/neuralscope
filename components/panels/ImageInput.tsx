@@ -29,6 +29,7 @@ export function ImageInput({ layout, width, height }: Props) {
   const setLoadError = useScopeStore((s) => s.setLoadError);
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [resampledPreview, setResampledPreview] = useState<string | null>(null);
   const [bitmap, setBitmap] = useState<ImageBitmap | null>(null);
   const [normalize, setNormalize] = useState<ImageNormalize>(
     layout === 'rgb' ? 'imagenet' : 'unit',
@@ -61,12 +62,27 @@ export function ImageInput({ layout, width, height }: Props) {
           if (prev) URL.revokeObjectURL(prev);
           return url;
         });
+        // Paint a downscaled-to-target preview so the user sees the
+        // pixel grid the model actually receives (after resize, before
+        // normalize).
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = '#000';
+          ctx.fillRect(0, 0, width, height);
+          ctx.drawImage(bmp, 0, 0, width, height);
+          setResampledPreview(canvas.toDataURL());
+        } else {
+          setResampledPreview(null);
+        }
         setPredictions(null);
       } catch (e) {
         setRunError((e as Error).message);
       }
     },
-    [setLoadError],
+    [setLoadError, width, height],
   );
 
   const run = useCallback(async () => {
@@ -115,12 +131,18 @@ export function ImageInput({ layout, width, height }: Props) {
         }`}
       >
         {previewUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={previewUrl}
-            alt="input preview"
-            className="max-h-32 mx-auto rounded"
-          />
+          <div className="flex flex-col items-center gap-1">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={resampledPreview ?? previewUrl}
+              alt={`input preview at ${width}×${height}`}
+              style={{ imageRendering: 'pixelated' }}
+              className="max-h-32 mx-auto rounded border border-zinc-800"
+            />
+            <span className="text-[10px] text-zinc-500">
+              model sees {width}×{height} {layout}
+            </span>
+          </div>
         ) : (
           <>
             <div>Drop an image · or click</div>

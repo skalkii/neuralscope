@@ -66,10 +66,9 @@ export async function initInference(
   const promise = new Promise<WorkerResponse>((resolve, reject) => {
     pending.set(id, { resolve, reject });
   });
-  w.postMessage(
-    { kind: 'init', id, modelBytes: copy, executionProvider },
-    [copy],
-  );
+  w.postMessage({ kind: 'init', id, modelBytes: copy, executionProvider }, [
+    copy,
+  ]);
   const msg = await promise;
   if (msg.kind !== 'init-ok') throw new Error('unexpected response');
   return {

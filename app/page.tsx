@@ -104,8 +104,13 @@ export default function Home() {
 
         {selectedGroup && (
           <section className="flex flex-col gap-1 rounded border border-cyan-900 bg-cyan-950/20 p-3 text-[11px]">
-            <div className="font-mono break-all text-cyan-300">
-              {selectedGroup.label}
+            <div
+              className="font-mono break-all text-cyan-300"
+              title={selectedGroup.label}
+            >
+              {selectedGroup.label.length > 40
+                ? selectedGroup.label.slice(0, 38) + '…'
+                : selectedGroup.label}
             </div>
             <div className="break-all text-zinc-400">
               id: <span className="text-zinc-200">{selectedGroup.id}</span>

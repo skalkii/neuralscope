@@ -20,7 +20,6 @@ export function MnistInput() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pixelsRef = useRef<Float32Array>(new Float32Array(GRID * GRID));
   const drawingRef = useRef<boolean>(false);
-  const [hasInk, setHasInk] = useState(false);
   const [predictions, setPredictions] = useState<Prediction[] | null>(null);
   const [runError, setRunError] = useState<string | null>(null);
 
@@ -45,7 +44,6 @@ export function MnistInput() {
 
   useEffect(() => {
     pixelsRef.current = new Float32Array(GRID * GRID);
-    setHasInk(false);
     setPredictions(null);
     setRunError(null);
     redraw();
@@ -80,7 +78,6 @@ export function MnistInput() {
       stamp(-1, -1, 0.3);
       stamp(1, -1, 0.3);
       stamp(-1, 1, 0.3);
-      setHasInk(true);
       redraw();
     },
     [redraw],
@@ -88,7 +85,6 @@ export function MnistInput() {
 
   const clear = useCallback(() => {
     pixelsRef.current = new Float32Array(GRID * GRID);
-    setHasInk(false);
     setPredictions(null);
     redraw();
   }, [redraw]);
@@ -138,7 +134,7 @@ export function MnistInput() {
         <div className="flex gap-2 self-stretch">
           <button
             onClick={() => void run()}
-            disabled={sessionStatus !== 'ready' || isInferring || !hasInk}
+            disabled={sessionStatus !== 'ready' || isInferring}
             className="flex-1 rounded bg-cyan-500 px-2 py-1.5 text-[11px] font-semibold text-black hover:bg-cyan-400 disabled:bg-zinc-700 disabled:text-zinc-500 disabled:cursor-not-allowed"
           >
             {isInferring

@@ -92,10 +92,7 @@ ctx.onmessage = async (e: MessageEvent<WorkerRequest>) => {
         transferables.push(buf);
         outputs[k] = { data: buf, dims: Array.from(t.dims), dtype: t.type };
       }
-      post(
-        { kind: 'run-ok', id: msg.id, outputs, elapsed },
-        transferables,
-      );
+      post({ kind: 'run-ok', id: msg.id, outputs, elapsed }, transferables);
     } else if (msg.kind === 'extract-weights') {
       if (!cachedModel) {
         post({ kind: 'extract-weights-ok', id: msg.id, weights: null });
